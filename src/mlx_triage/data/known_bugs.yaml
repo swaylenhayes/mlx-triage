@@ -1,0 +1,66 @@
+# Curated database of documented MLX/framework bugs.
+# Sources: MLX GitHub issues, community postmortems, research evidence.
+# See docs/evidence/ for primary sources.
+
+bugs:
+  - id: MLX-001
+    title: "Float16 addmm CPU wrong results"
+    mlx_issue: 2695
+    affected_versions: ["< 0.22.0"]
+    severity: critical
+    detection: "tier0.version_check"
+    symptom: "Completely wrong matrix multiplication results on CPU with float16"
+    architecture: ["all"]
+    remediation: "Use bfloat16 or float32, or upgrade MLX"
+
+  - id: MLX-002
+    title: "qmv kernel infinite loop at specific tensor dimensions"
+    mlx_issue: null
+    affected_versions: ["< 0.24.0"]
+    severity: critical
+    detection: "tier0.version_check"
+    symptom: "Model enters infinite generation loop at end of long prompts (4-bit only)"
+    architecture: ["llama", "mistral"]
+    remediation: "Use 8-bit quantization or upgrade MLX"
+
+  - id: MLX-003
+    title: "Metal float16 non-determinism with error accumulation"
+    mlx_issue: 488
+    affected_versions: ["all"]
+    severity: warning
+    detection: "tier1.determinism"
+    symptom: "Non-reproducible outputs at temperature=0 with float16 weights"
+    architecture: ["all"]
+    remediation: "Use quantized integer models (Q4, Q8) for reproducibility"
+
+  - id: MLX-004
+    title: "bfloat16 save_safetensors silent corruption"
+    mlx_issue: null
+    source: "baa.ai postmortem"
+    affected_versions: ["all"]
+    severity: critical
+    detection: "tier0.weight_integrity"
+    symptom: "Structurally valid safetensors file with numerically garbage weights"
+    architecture: ["all"]
+    remediation: "Verify weight checksums against hub; re-download if mismatch"
+
+  - id: MLX-005
+    title: "Conv1d composition drift"
+    mlx_issue: 2122
+    affected_versions: ["all"]
+    severity: warning
+    detection: "tier3.activation_diff"
+    symptom: "Sequential Conv1d operations accumulate MAE ~0.04 vs PyTorch"
+    architecture: ["whisper", "wav2vec", "audio_models"]
+    remediation: "Use float32 for audio model inference or validate output quality"
+
+  - id: MLX-006
+    title: "GELU approximation mismatch in vision encoders"
+    mlx_issue: null
+    source: "PaliGemma MLX issue"
+    affected_versions: ["all"]
+    severity: high
+    detection: "tier3.activation_diff"
+    symptom: "Vision encoder activations diverge >100K sum-abs-diff from reference"
+    architecture: ["paligemma", "clip", "siglip"]
+    remediation: "Verify GELU implementation matches model's training config"

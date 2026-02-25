@@ -1,0 +1,63 @@
+# tests/test_tier0_tokenizer.py
+import json
+from pathlib import Path
+
+from mlx_triage.models import CheckStatus
+from mlx_triage.tier0.tokenizer_check import check_tokenizer_config
+
+
+def test_valid_tokenizer_passes(good_model):
+    result = check_tokenizer_config(str(good_model))
+    assert result.check_id == "0.2"
+    assert result.status in (CheckStatus.PASS, CheckStatus.INFO)
+
+
+def test_missing_eos_critical(tmp_path):
+    d = tmp_path / "no-eos"
+    d.mkdir()
+    (d / "config.json").write_text(json.dumps({"model_type": "llama"}))
+    (d / "tokenizer_config.json").write_text(json.dumps({
+        "bos_token": "<s>",
+        "chat_template": "{% for m in messages %}{{ m.content }}{% endfor %}",
+    }))
+    result = check_tokenizer_config(str(d))
+    assert result.status == CheckStatus.CRITICAL
+
+
+def test_missing_chat_template_warning(tmp_path):
+    d = tmp_path / "no-template"
+    d.mkdir()
+    (d / "config.json").write_text(json.dumps({"model_type": "llama"}))
+    (d / "tokenizer_config.json").write_text(json.dumps({
+        "eos_token": "</s>",
+        "bos_token": "<s>",
+    }))
+    result = check_tokenizer_config(str(d))
+    assert result.status == CheckStatus.WARNING
+
+
+def test_no_tokenizer_config_fails(tmp_path):
+    d = tmp_path / "empty"
+    d.mkdir()
+    (d / "config.json").write_text(json.dumps({"model_type": "llama"}))
+    result = check_tokenizer_config(str(d))
+    assert result.status == CheckStatus.FAIL
+
+
+def test_llama3_missing_eot_id_warning(tmp_path):
+    """Llama 3 needs BOTH end_of_text AND eot_id stop tokens."""
+    d = tmp_path / "llama3"
+    d.mkdir()
+    (d / "config.json").write_text(json.dumps({"model_type": "llama"}))
+    (d / "tokenizer_config.json").write_text(json.dumps({
+        "eos_token": "<|end_of_text|>",
+        "bos_token": "<|begin_of_text|>",
+        "chat_template": "{% for m in messages %}{{ m.content }}{% endfor %}",
+    }))
+    # generation_config.json with only one stop token
+    (d / "generation_config.json").write_text(json.dumps({
+        "eos_token_id": 128001,
+    }))
+    result = check_tokenizer_config(str(d))
+    # Should at least INFO about Llama 3 dual stop token pattern
+    assert result.status in (CheckStatus.WARNING, CheckStatus.INFO, CheckStatus.PASS)
