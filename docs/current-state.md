@@ -6,72 +6,61 @@ _Last updated: 2026-02-25_
 
 ## Where We Are
 
-**Phase: Phase 0 — Scaffolding & Tier 0 — PLANNING COMPLETE**
+**Phase: Phase 0 — Scaffolding & Tier 0 — COMPLETE**
 
-Project spec is written and evidence base is assembled. Implementation plan for Phase 0 is complete with 12 tasks, 49 tests, and TDD approach. No code has been written yet — the project directory contains only documentation (PROJECT-SPEC.md, evidence files, research artifacts) and template configuration files.
+Full CLI tool with 4 Tier 0 diagnostic checks, Rich terminal + JSON output, and a curated known-bugs YAML database. Verified against a real MLX model (chatterbox-turbo-fp16). 54 tests, all passing.
 
 ---
 
 ## Completed This Session
 
-- Read and analyzed the full PROJECT-SPEC.md (742 lines)
-- Reviewed experiment-consolidation.md from the vllm-mlx research phase
-- Recalled Sediment memory for project context
-- Created Phase 0 implementation plan (`docs/plans/2026-02-25-phase-0-scaffolding.md`)
-- Updated CLAUDE.md with real project details
-- Updated roadmap.md with phased priorities (P0-P3)
-- Updated current-state.md (this file)
-
----
-
-## In Progress
-
-**Phase 0 Implementation Plan** — ready to execute
-
-12 tasks covering:
-1. Project scaffolding (pyproject.toml, src layout)
-2. Core data models
-3. Known bugs database
-4. CLI skeleton
-5-8. Four Tier 0 checks (dtype, tokenizer, weight integrity, MLX version)
-9. Tier 0 runner
-10. Report generation
-11. CLI integration
-12. Doc updates
+- Created Phase 0 implementation plan (12 tasks, TDD)
+- Built project scaffolding (pyproject.toml, src layout, uv sync)
+- Implemented core data models (CheckStatus, DiagnosticResult, TierReport)
+- Created known-bugs YAML database (6 curated MLX bugs from evidence base)
+- Implemented 4 Tier 0 checks in parallel via subagents:
+  - 0.1: Dtype compatibility (Gemma 3 FP16 overflow pattern)
+  - 0.2: Tokenizer & EOS config (Ollama template disaster pattern)
+  - 0.3: Weight integrity (baa.ai BF16 corruption pattern)
+  - 0.4: MLX version & known bug check
+- Built Tier 0 runner, report generation (JSON + Rich), CLI integration
+- Manual verification against real cached MLX model
+- Updated all project docs (CLAUDE.md, roadmap, agents)
+- Committed as `f271faf` on main
 
 ---
 
 ## Immediate Next Step
 
-> Execute Phase 0 plan starting with Task 1: Project Scaffolding.
+> Begin Phase 1: Statistical Core (Tier 1).
 
 Supporting context:
-- Plan is at `docs/plans/2026-02-25-phase-0-scaffolding.md`
-- Use `superpowers:executing-plans` skill for task-by-task execution
-- Each task follows TDD: write failing test → run it → implement → run it → commit
-- Can be run via subagent-driven development (fresh agent per task) or parallel session
+- Phase 1 needs: diagnostic prompt suite, determinism check, reference divergence, quantization quality gate
+- Requires MLX installed (Tier 1 runs inference)
+- Plan Phase 1 before implementing — create `docs/plans/YYYY-MM-DD-phase-1-statistical-core.md`
+- See PROJECT-SPEC.md "Phase 1: Statistical Core" section for full details
 
 ---
 
 ## Open Questions / Blockers
 
-- **No blockers.** Plan is ready to execute.
-- **Open question**: Whether to install MLX as a dependency for dev environment (tests mock it, but manual verification needs it)
+- **MLX dependency**: Tier 1 requires MLX for inference. Install in dev environment before starting Phase 1.
+- **Reference models**: Need 3-5 known-good models for threshold calibration (see PROJECT-SPEC.md Phase 1 tasks)
 
 ---
 
 ## How to Verify
 
 ```bash
-# After Phase 0 is complete:
+# Tier 0 works:
 uv run mlx-triage check <path-to-any-mlx-model-directory>
-# Expected: Rich terminal output with Tier 0 diagnostic results
+# Expected: Rich terminal output with 4 diagnostic checks
 
 uv run mlx-triage check <path> --format json
 # Expected: JSON report with checks, verdict, should_continue
 
 uv run pytest -v
-# Expected: ~49 tests, all passing
+# Expected: 54 tests, all passing in <1s
 ```
 
 ---
@@ -81,6 +70,7 @@ uv run pytest -v
 - safetensors BF16: numpy doesn't support bfloat16 natively — test fixtures create binary headers directly
 - MLX is an optional dependency — Tier 0 works without it (version check gracefully skips)
 - `model_path` = local directory path, not a HuggingFace model ID (for v0.1)
+- Version check agent added smart severity handling: "all"-version bugs capped at WARNING to prevent always-CRITICAL
 
 ---
 
@@ -88,7 +78,7 @@ uv run pytest -v
 
 If resuming in a new session, start here:
 
-- **First action**: Execute Phase 0 plan, Task 1
-- **Reference files**: `docs/plans/2026-02-25-phase-0-scaffolding.md`, `PROJECT-SPEC.md`
-- **Current branch**: `main`
-- **Phase status**: Planning complete, no code written yet. Execute Task 1-12 sequentially.
+- **First action**: Plan Phase 1 (write `docs/plans/` document)
+- **Reference files**: `PROJECT-SPEC.md` Phase 1 section, `docs/plans/2026-02-25-phase-0-scaffolding.md`
+- **Current branch**: `main` at `f271faf`
+- **Phase status**: Phase 0 COMPLETE. Phase 1 not started.

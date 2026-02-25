@@ -12,22 +12,22 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 
 ---
 
-## P0 — Phase 0: Scaffolding & Tier 0 (Current)
+## P0 — Phase 0: Scaffolding & Tier 0 (COMPLETE)
 
-- [ ] Project scaffolding (pyproject.toml, src layout, uv sync)
-- [ ] Core data models (CheckStatus, DiagnosticResult, TierReport)
-- [ ] Known bugs database (YAML + config loader)
-- [ ] CLI skeleton (Click: check, report, compare)
-- [ ] Check 0.1: Dtype compatibility audit
-- [ ] Check 0.2: Tokenizer & EOS configuration audit
-- [ ] Check 0.3: Weight file integrity
-- [ ] Check 0.4: MLX version & known bug check
-- [ ] Tier 0 runner (orchestrate all checks)
-- [ ] Report generation (JSON + Rich terminal)
-- [ ] CLI integration (end-to-end wiring)
-- [ ] Project docs update
+- [x] Project scaffolding (pyproject.toml, src layout, uv sync)
+- [x] Core data models (CheckStatus, DiagnosticResult, TierReport)
+- [x] Known bugs database (YAML + config loader)
+- [x] CLI skeleton (Click: check, report, compare)
+- [x] Check 0.1: Dtype compatibility audit
+- [x] Check 0.2: Tokenizer & EOS configuration audit
+- [x] Check 0.3: Weight file integrity
+- [x] Check 0.4: MLX version & known bug check
+- [x] Tier 0 runner (orchestrate all checks)
+- [x] Report generation (JSON + Rich terminal)
+- [x] CLI integration (end-to-end wiring)
+- [x] Project docs update
 
-**Ship criteria:** `mlx-triage check <any-mlx-model>` produces a Tier 0 report in < 30 seconds.
+**Ship criteria:** `mlx-triage check <any-mlx-model>` produces a Tier 0 report in < 30 seconds. **MET.**
 
 **Plan:** `docs/plans/2026-02-25-phase-0-scaffolding.md`
 
@@ -90,7 +90,8 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 |------|-------|------|-------|
 | Research evidence collection | Pre-project | 2026-02-25 | 11 frontier model analyses, 2 systematic reviews |
 | PROJECT-SPEC.md | Pre-project | 2026-02-25 | Full spec with tiered diagnostic protocol |
-| Phase 0 implementation plan | Phase 0 | 2026-02-25 | 12 tasks, 49 tests, TDD approach |
+| Phase 0 implementation plan | Phase 0 | 2026-02-25 | 12 tasks, TDD approach |
+| Phase 0 implementation | Phase 0 | 2026-02-25 | 54 tests, 4 checks, CLI + reports. Commit f271faf |
 
 ---
 
