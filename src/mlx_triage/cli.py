@@ -35,20 +35,47 @@ def cli() -> None:
 )
 def check(model_path: str, tier: int, output: str | None, fmt: str) -> None:
     """Run diagnostic checks against an MLX model."""
+    import json as json_mod
+
+    from mlx_triage.models import CheckStatus
     from mlx_triage.report import render_json, render_terminal, write_report
     from mlx_triage.tier0 import run_tier0
 
+    reports = []
+
     # Run Tier 0 (always runs first)
-    report = run_tier0(model_path)
+    tier0_report = run_tier0(model_path)
+    reports.append(tier0_report)
+
+    # Run Tier 1 if requested
+    if tier >= 1:
+        if tier0_report.worst_status in (
+            CheckStatus.CRITICAL,
+            CheckStatus.FAIL,
+        ):
+            click.echo(
+                "Tier 0 found critical issues. Fix those before running Tier 1.",
+                err=True,
+            )
+        else:
+            from mlx_triage.tier1 import run_tier1
+
+            tier1_report = run_tier1(model_path)
+            reports.append(tier1_report)
 
     # Output
     if output:
-        write_report(report, output, fmt=fmt)
+        write_report(reports[-1], output, fmt=fmt)
         click.echo(f"Report saved to {output}")
     elif fmt == "json":
-        click.echo(render_json(report))
+        if len(reports) == 1:
+            click.echo(render_json(reports[0]))
+        else:
+            all_reports = [json_mod.loads(render_json(r)) for r in reports]
+            click.echo(json_mod.dumps(all_reports, indent=2))
     else:
-        click.echo(render_terminal(report))
+        for report in reports:
+            click.echo(render_terminal(report))
 
 
 @cli.command()
