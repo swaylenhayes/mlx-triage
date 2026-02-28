@@ -22,3 +22,7 @@ __pycache__/
 # Build
 dist/
 build/
+
+# MLX knowledge corpus (local reference, auto-synced)
+_docs/mlx-knowledge/
+!_docs/mlx-knowledge/INDEX.md
