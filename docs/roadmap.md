@@ -33,22 +33,23 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 
 ---
 
-## P1 — Phase 1: Statistical Core (Tier 1) — IN PROGRESS
+## P1 — Phase 1: Statistical Core (Tier 1) — COMPLETE
 
 **Design:** `docs/plans/2026-02-28-v01-launch-design.md` (approved 2026-02-28)
 **Implementation plan:** `docs/plans/2026-02-25-phase-1-statistical-core.md`
 
-- [ ] Task 1: MLX knowledge corpus (sync script)
-- [ ] Task 2: MLX inference utilities (`mlx_utils.py`)
-- [ ] Task 3: Token comparison utilities (`comparison.py`)
-- [ ] Task 4: Diagnostic prompt suite (10 prompts + eval corpus)
-- [ ] Task 5: Test 1.1 — Determinism check (N runs at temp=0)
-- [ ] Task 6: Test 1.2 — Reference divergence (MLX vs Transformers)
-- [ ] Task 7: Test 1.3 — Quantization quality gate (perplexity)
-- [ ] Tier 1 runner + CLI `--tier 1` wiring
-- [ ] End-to-end validation on real models (M2 Max)
+- [x] Task 1: MLX knowledge corpus (sync script) — `b929547`
+- [x] Task 2: MLX inference utilities (`mlx_utils.py`) — `5039e39`
+- [x] Task 3: Token comparison utilities (`comparison.py`) — `20b276a`
+- [x] Task 4: Diagnostic prompt suite (10 prompts + eval corpus) — `c4646c9`
+- [x] Task 5: Test 1.1 — Determinism check (N runs at temp=0) — `1e6d30c`
+- [x] Task 6: Test 1.2 — Reference divergence (MLX vs Transformers) — `0d7ceed`
+- [x] Task 7: Test 1.3 — Quantization quality gate (perplexity) — `d54d38f`
+- [x] Tier 1 runner + CLI `--tier 1` wiring — `9c01dad`
+- [x] End-to-end validation on real models (M2 Max) — `74288f7`
+- [x] mlx_lm >=0.30 API compatibility fix — `74288f7`
 
-**Ship criteria:** `mlx-triage check <model> --tier 1` correctly identifies known-good as PASS and deliberately misconfigured as FAIL.
+**Ship criteria:** `mlx-triage check <model> --tier 1` correctly identifies known-good as PASS and deliberately misconfigured as FAIL. **MET.** Validated on Llama 3.2 1B 4-bit and Qwen3 0.6B 8-bit.
 
 ---
 
@@ -140,6 +141,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Phase 0 implementation | Phase 0 | 2026-02-25 | 54 tests, 4 checks, CLI + reports. Commit f271faf |
 | Phase 1 implementation plan | Phase 1 | 2026-02-25 | 7 tasks, TDD. `docs/plans/2026-02-25-phase-1-statistical-core.md` |
 | v0.1 launch design | Phase 1 | 2026-02-28 | Approved. `docs/plans/2026-02-28-v01-launch-design.md`. Commit 18e9e52 |
+| Phase 1 implementation | Phase 1 | 2026-02-28 | 9 tasks, 101 tests, 9 commits. E2E validated on 2 models. Commit 74288f7 |
 
 ---
 
