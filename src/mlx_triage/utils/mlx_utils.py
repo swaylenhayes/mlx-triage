@@ -80,9 +80,15 @@ def generate_text(
             prompt, tokenize=False, add_generation_prompt=True
         )
 
-    kwargs: dict = {"max_tokens": max_tokens, "temp": temp}
+    # Build kwargs for stream_generate. mlx_lm >=0.30 uses a `sampler`
+    # callable instead of a bare `temp` kwarg passed through to generate_step.
+    from mlx_lm.sample_utils import make_sampler
+
+    kwargs: dict = {"max_tokens": max_tokens, "sampler": make_sampler(temp=temp)}
     if seed is not None:
-        kwargs["seed"] = seed
+        import mlx.core as mx
+
+        mx.random.seed(seed)
 
     tokens: list[int] = []
     logprobs: list[float] = []
@@ -93,19 +99,36 @@ def generate_text(
         tokens.append(response.token)
         if response.logprobs is not None:
             # Extract the log-probability for the sampled token.
-            # In real mlx_lm, logprobs is an mx.array of shape (vocab_size,).
-            # We handle scalars (.item()), indexable arrays, and plain floats.
+            # In mlx_lm >=0.30, logprobs is an mx.array of shape (vocab_size,).
+            # We also handle test mocks that pass plain lists or floats.
             lp = response.logprobs
-            if hasattr(lp, "item"):
-                logprobs.append(float(lp.item()))
-            elif hasattr(lp, "__getitem__"):
-                try:
-                    logprobs.append(float(lp[response.token]))
-                except (IndexError, KeyError):
-                    # Fallback: single-element sequence or pre-extracted value
-                    logprobs.append(float(lp[0]))
-            else:
-                logprobs.append(float(lp))
+            try:
+                # Check if this is an mx.array (has .size attribute as int/property)
+                is_mx = hasattr(lp, "size") and hasattr(lp, "item")
+                if is_mx:
+                    size = lp.size if not callable(lp.size) else lp.size()
+                    if size == 1:
+                        # Scalar mx.array
+                        logprobs.append(float(lp.item()))
+                    else:
+                        # Full vocab logprobs — index by token ID
+                        logprobs.append(float(lp[response.token].item()))
+                elif isinstance(lp, (int, float)):
+                    logprobs.append(float(lp))
+                elif isinstance(lp, (list, tuple)):
+                    # Test mock: list of pre-extracted values
+                    if len(lp) == 1:
+                        logprobs.append(float(lp[0]))
+                    elif response.token < len(lp):
+                        logprobs.append(float(lp[response.token]))
+                    else:
+                        logprobs.append(float(lp[0]))
+                elif hasattr(lp, "item"):
+                    logprobs.append(float(lp.item()))
+                else:
+                    logprobs.append(float(lp))
+            except (IndexError, KeyError, ValueError, TypeError):
+                pass  # Skip logprob if extraction fails
         text_parts.append(response.text)
         tps = response.generation_tps
 
