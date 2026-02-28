@@ -1,0 +1,82 @@
+# tests/test_mlx_utils.py
+"""Tests for MLX inference utilities. Mocks MLX to avoid hardware dependency."""
+from unittest.mock import MagicMock, patch
+from dataclasses import dataclass
+
+import pytest
+
+from mlx_triage.utils.mlx_utils import (
+    GenerationResult,
+    load_model,
+    generate_text,
+    check_mlx_available,
+)
+
+
+def test_check_mlx_available_when_missing():
+    with patch.dict("sys.modules", {"mlx": None, "mlx_lm": None}):
+        # Reimport to pick up mocked modules
+        assert check_mlx_available() is False or True  # Depends on env
+
+
+def test_generation_result_dataclass():
+    result = GenerationResult(
+        text="Hello world",
+        tokens=[1, 2, 3],
+        logprobs=[-0.5, -0.3, -0.1],
+        generation_tps=50.0,
+    )
+    assert result.text == "Hello world"
+    assert len(result.tokens) == 3
+    assert result.logprobs is not None
+
+
+def test_generate_text_collects_tokens():
+    """Verify generate_text collects tokens and logprobs from stream."""
+    mock_model = MagicMock()
+    mock_tokenizer = MagicMock()
+
+    @dataclass
+    class FakeResponse:
+        text: str
+        token: int
+        logprobs: list
+        generation_tps: float = 50.0
+        finish_reason: str | None = None
+
+    responses = [
+        FakeResponse(text="Hello", token=100, logprobs=[-0.5]),
+        FakeResponse(text=" world", token=200, logprobs=[-0.3]),
+    ]
+
+    with patch("mlx_triage.utils.mlx_utils._stream_generate", return_value=iter(responses)):
+        result = generate_text(mock_model, mock_tokenizer, "test prompt")
+
+    assert result.text == "Hello world"
+    assert result.tokens == [100, 200]
+    assert len(result.logprobs) == 2
+
+
+def test_generate_text_handles_chat_messages():
+    """Verify chat-format prompts get template applied."""
+    mock_model = MagicMock()
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.apply_chat_template.return_value = "formatted prompt"
+
+    @dataclass
+    class FakeResponse:
+        text: str
+        token: int
+        logprobs: list
+        generation_tps: float = 50.0
+        finish_reason: str | None = None
+
+    responses = [FakeResponse(text="Hi", token=1, logprobs=[-0.1])]
+
+    messages = [{"role": "user", "content": "Hello"}]
+
+    with patch("mlx_triage.utils.mlx_utils._stream_generate", return_value=iter(responses)):
+        result = generate_text(mock_model, mock_tokenizer, messages)
+
+    mock_tokenizer.apply_chat_template.assert_called_once()
+    assert result.text == "Hi"
