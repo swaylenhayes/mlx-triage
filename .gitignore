@@ -23,6 +23,9 @@ __pycache__/
 dist/
 build/
 
+# Dev workflow (not public)
+_private/
+
 # MLX knowledge corpus (local reference, auto-synced)
 _docs/mlx-knowledge/
 !_docs/mlx-knowledge/INDEX.md
