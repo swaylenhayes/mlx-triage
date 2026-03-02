@@ -2,7 +2,6 @@
 
 > **Approved:** 2026-02-28
 > **Scope:** Phase 1 (Statistical Core) + Phase 1.5 (Launch Packaging) → PyPI publish + blog post
-> **Primary agent:** Claude Code | **Parallel agent:** Codex (packaging tasks)
 
 ---
 
@@ -18,11 +17,11 @@ Ship mlx-triage v0.1 as a contribution-ready open-source tool on PyPI with full 
 |----------|--------|-----------|
 | First release scope | Tier 0 + Tier 1 + full packaging (Option C) | Contribution-ready first impression for flywheel |
 | Distribution | GitHub + PyPI first, blog post fast follow | Get installable, then drive traffic |
-| Agent model | Claude Code primary, Codex for packaging, memo checkpoints for ecosystem | Matches existing multi-agent workflow |
+| Workstream model | Primary and parallel workstreams with checkpoints | Matches existing multi-workstream workflow |
 | Phase 1 plan | Execute existing plan as-is + add packaging phase | Plan is solid, no rework needed |
 | Reference divergence | Include as optional dependency (`mlx-triage[reference]`) | Core differentiator, graceful skip if not installed |
 | Model loading | Shared load in `run_tier1()`, pass tuple to checks | Avoids loading multi-GB model 3x |
-| Context resilience | Files + Sediment + server-memory + git at every task boundary | Belt and suspenders until memory migration |
+| Context resilience | Files + git at every task boundary | Multiple redundant state preservation mechanisms |
 
 ---
 
@@ -95,7 +94,7 @@ Missing dependencies → `CheckStatus.SKIP` with remediation instructions.
 
 ## Work Streams
 
-### Stream A: Implementation (Claude Code)
+### Stream A: Implementation
 
 Executes the existing Phase 1 plan (`docs/plans/2026-02-25-phase-1-statistical-core.md`) task-by-task with TDD, plus integration work.
 
@@ -111,12 +110,7 @@ Executes the existing Phase 1 plan (`docs/plans/2026-02-25-phase-1-statistical-c
 | S4 | Tier 1 runner + CLI wiring | `uv run mlx-triage check <model> --tier 1` produces Tier 0+1 report |
 | | End-to-end on real models (M2 Max) | Quantized model: determinism PASS. Meaningful divergence report. |
 
-Subagent usage:
-- **feature-dev** for each task (parallel worktrees where independent)
-- **code-reviewer** after each task or logical chunk
-- **code-explorer** for MLX internals when needed
-
-### Stream B: Packaging (Codex — parallel with S2/S3)
+### Stream B: Packaging (parallel)
 
 | Task | Ship criteria |
 |------|--------------|
@@ -128,13 +122,7 @@ Subagent usage:
 | GitHub Actions CI | Tests pass on push/PR, Python 3.11-3.13, macOS |
 | Blog post outline | Saved as `docs/plans/blog-post-outline.md` |
 
-### Stream C: Inter-Agent Coordination
-
-| When | Memo content | Recipients |
-|------|-------------|------------|
-| After S3 complete | "mlx-triage v0.1 Tier 1 checks working. Can detect infrastructure non-determinism, reference divergence, quantization quality issues. Results from test models attached. Does this affect model validation in your domain?" | Backend server agent (vllm-mlx), Memory migration agent, others as relevant |
-
-### Stream D: Publish (Claude Code — final session)
+### Stream D: Publish
 
 | Task | Ship criteria |
 |------|--------------|
@@ -143,7 +131,7 @@ Subagent usage:
 | Build + publish | `pip install mlx-triage` works from clean venv |
 | Git tag | `v0.1.0` |
 | Push to GitHub (public) | Repo visible, README renders, CI green |
-| State updates | `current-state.md`, `roadmap.md`, Sediment, server-memory |
+| State updates | `current-state.md`, `roadmap.md` |
 
 ### Fast Follow: Blog Post
 
@@ -164,19 +152,14 @@ Every task boundary includes a save checkpoint:
 3. Update `docs/roadmap.md`
 
 **At session boundaries (all of above plus):**
-4. Sediment store (decisions, conventions — project scope)
-5. server-memory update (structured facts on project entity)
-6. Close-out summary in conversation
+4. Close-out summary in conversation
 
 **Recovery contract** (for any new session or crash recovery):
 ```
 1. Read docs/current-state.md     ← where are we, what's next
 2. Read docs/roadmap.md           ← what's done, what's left
-3. Sediment recall("mlx-triage")  ← decisions and conventions
-4. git log --oneline -10          ← what was actually committed
+3. git log --oneline -10          ← what was actually committed
 ```
-
-This protocol holds until the Falcor DB memory migration is complete. At that point, swap Sediment/server-memory steps for the new system.
 
 ---
 

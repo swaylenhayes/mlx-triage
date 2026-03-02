@@ -1,10 +1,8 @@
 # v0.1 Integration, Packaging & Launch Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Wire Tier 1 checks into the CLI, add launch packaging (README, METHODOLOGY, CI, PyPI), and publish mlx-triage v0.1.0 as a contribution-ready open-source tool.
 
-**Architecture:** This plan picks up after Phase 1 Tasks 1-7 (from `docs/plans/2026-02-25-phase-1-statistical-core.md`). It adds the Tier 1 runner that orchestrates checks with shared model loading, wires the `--tier` CLI flag, creates all packaging artifacts, and publishes to PyPI. Stream A (Tasks 8-11) runs in Claude Code. Stream B (Tasks P1-P6) runs in Codex and can execute in parallel with Stream A.
+**Architecture:** This plan picks up after Phase 1 Tasks 1-7 (from `docs/plans/2026-02-25-phase-1-statistical-core.md`). It adds the Tier 1 runner that orchestrates checks with shared model loading, wires the `--tier` CLI flag, creates all packaging artifacts, and publishes to PyPI. Stream A (Tasks 8-11) handles integration. Stream B (Tasks P1-P6) handles packaging and can execute in parallel with Stream A.
 
 **Tech Stack:** Existing Phase 0+1 stack. New: GitHub Actions, `twine`/`uv publish` for PyPI.
 
@@ -16,7 +14,7 @@
 
 ---
 
-## Stream A: Integration (Claude Code)
+## Stream A: Integration
 
 ### Task 8: Tier 1 Runner
 
@@ -482,7 +480,7 @@ git commit -m "docs: record end-to-end validation results for v0.1"
 
 ---
 
-## Stream B: Packaging (Codex — can run in parallel with Stream A)
+## Stream B: Packaging (parallel)
 
 ### Task P1: README.md Overhaul
 
@@ -1067,18 +1065,16 @@ git commit -m "docs: update state for v0.1.0 release"
 ## Execution Order Summary
 
 ```
-Phase 1 Tasks 1-7 (existing plan)     ← Claude Code, Sessions S1-S3
+Phase 1 Tasks 1-7 (existing plan)
     ↓
-Task 8: Tier 1 Runner                 ← Claude Code, Session S4
-Task 9: CLI --tier wiring             ← Claude Code, Session S4
-Task 10: Multi-tier report test       ← Claude Code, Session S4
-Task 11: E2E validation (manual)      ← Claude Code, Session S4
+Task 8: Tier 1 Runner
+Task 9: CLI --tier wiring
+Task 10: Multi-tier report test
+Task 11: E2E validation (manual)
     ↓
-Tasks P1-P6: Packaging                ← Codex (parallel with S2-S4)
+Tasks P1-P6: Packaging (parallel with Tasks 8-11)
     ↓
-Task F1: Merge + validate             ← Claude Code, Session S5
-Task F2: Build + PyPI publish          ← Claude Code, Session S5
-Task F3: Tag + GitHub release          ← Claude Code, Session S5
+Task F1: Merge + validate
+Task F2: Build + PyPI publish
+Task F3: Tag + GitHub release
 ```
-
-**Inter-agent memo checkpoint:** After Task 11 (E2E validation passes), before Task F1.

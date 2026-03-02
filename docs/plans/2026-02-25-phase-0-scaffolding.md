@@ -1,7 +1,5 @@
 # Phase 0: Scaffolding & Tier 0 Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** A Python CLI that runs Tier 0 diagnostic checks against any local MLX model directory, producing structured reports in JSON and Rich terminal formats — no inference required.
 
 **Architecture:** Click CLI routes commands → Tier 0 runner orchestrates 4 checks (dtype, tokenizer, weight integrity, version) → each check reads model config files and safetensors headers → results flow through a report generator that outputs JSON or Rich terminal tables. A known-bugs YAML database provides institutional knowledge for version-specific issue detection.

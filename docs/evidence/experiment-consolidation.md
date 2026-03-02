@@ -9,7 +9,7 @@ _Status: Research phase COMPLETE_
 
 ## Executive Summary
 
-Over 7 experiments spanning 3 weeks, we evaluated 20+ models across text reasoning, tool calling, vision, OCR augmentation, and cloud comparison to determine the optimal local inference architecture for an interactive UI assistant on Apple Silicon (M2 Max, 96 GB).
+Over 7 experiments spanning 3 weeks, we evaluated 20+ models across text reasoning, tool calling, vision, OCR augmentation, and cloud comparison to determine the optimal local inference architecture for an interactive application on Apple Silicon (M2 Max, 96 GB).
 
 **The answer**: An all-local architecture is viable and production-ready. No cloud dependency is required for the core interaction loop.
 
@@ -20,7 +20,7 @@ Over 7 experiments spanning 3 weeks, we evaluated 20+ models across text reasoni
 | Premium VLM | Qwen3-VL-30B-A3B-4bit | 48.6 tok/s | 9/9 | ~18 GB | MoE: 5x more vision depth than 4B VLMs, faster than dense 8B |
 | Spatial grounding | CoreML Vision OCR | native | — | — | Selective OCR (≤2.3K chars) for interactive elements |
 
-**How we got here**: This wasn't a straight-line benchmarking exercise. The research had two interleaved threads — **model evaluation** and **engine development** — that fed each other through 4 full iteration cycles. Testing models revealed engine limitations; fixing those limitations revealed new model capabilities; those capabilities exposed the next limitation. We started by asking "which models can even run well on Apple Silicon?" and ended by proving that local models match or exceed cloud frontier models on every metric that matters for interactive UI agents — while running at zero latency on unified memory. Seven models that were initially eliminated were rehabilitated through this process. (See [The Frontend–Backend Feedback Loop](#the-frontendbackend-feedback-loop) for the full co-evolution story.)
+**How we got here**: This wasn't a straight-line benchmarking exercise. The research had two interleaved threads — **model evaluation** and **engine development** — that fed each other through 4 full iteration cycles. Testing models revealed engine limitations; fixing those limitations revealed new model capabilities; those capabilities exposed the next limitation. We started by asking "which models can even run well on Apple Silicon?" and ended by proving that local models match or exceed cloud frontier models on every metric that matters for interactive applications — while running at zero latency on unified memory. Seven models that were initially eliminated were rehabilitated through this process. (See [The Frontend–Backend Feedback Loop](#the-frontendbackend-feedback-loop) for the full co-evolution story.)
 
 ---
 
@@ -38,7 +38,7 @@ The experiments followed a natural progression: each answer raised the next ques
 | 6 | **Can engine-level fixes rehabilitate broken models?** | Yes — the fork fixed EOS, enabled thinking-model tools (6/9 → 9/9), deduplicated spray, and unlocked VLM tool calling. | [Exp 6](#experiment-6-model-re-evaluation-with-fork-fixes) |
 | 7 | **Can frontier cloud models do what local can't?** | No. Cloud flash under-enumerates. Cloud Pro is more thorough but 10-100x slower. Local matches cloud on tools and reasoning. | [Exp 7](#experiment-7-cloud-gemini-comparison) |
 
-**The meta-finding**: We asked "do we need the cloud?" and the answer was no — not because cloud models are bad, but because the latency cost (10-100s per call) destroys the interactive UX that makes a local UI assistant valuable in the first place. The models are good enough locally. The architecture is the differentiator.
+**The meta-finding**: We asked "do we need the cloud?" and the answer was no — not because cloud models are bad, but because the latency cost (10-100s per call) destroys the interactive UX that makes a local interactive application valuable in the first place. The models are good enough locally. The architecture is the differentiator.
 
 ---
 
@@ -279,7 +279,7 @@ This was the longest experiment (27 commits), spanning multiple fork iterations 
 - **Tool calling**: All 3 flash models score 9/9. Post-I7, local VLMs also score 9/9 — gap closed.
 - **VLM degeneration**: flash-lite degenerates identically to local 4B VLMs (fabricated JSON with incrementing coordinates). Strongest cross-platform evidence that degeneration is a parameter-scale issue.
 - **V1 under-enumeration**: flash and flash-preview stop too early (~80 tokens, 2-3 elements vs ZwZ-8B's 821 tokens, 17 elements). No flash model matches ZwZ-8B on V1.
-- **Latency**: 10-12s per VLM call. Prohibitive for interactive UI agents.
+- **Latency**: 10-12s per VLM call. Prohibitive for interactive applications.
 
 **Pro Retest Findings** *(reviewed and corrected — original synthesis had incorrect V1 element counts)*:
 - **Tool calling**: All 3 Pro models score 9/9. gemini-2.5-pro hallucinated C2 filter syntax (`"import requests in language:python"`); newer preview models produced clean args.
@@ -291,7 +291,7 @@ This was the longest experiment (27 commits), spanning multiple fork iterations 
 - **Latency**: 11-21s for Tier A text, 29-103s for V1 vision. Strictly async.
 - **Tier A**: All Pro models score 9/10 — marginal over flash 8/10.
 
-**Decision**: All-local architecture is viable for UI Assistant. Cloud is a fallback for tasks exceeding local capacity, not the default orchestration layer. Pro-tier adds V1 depth (27-139 elements) at massive latency cost — useful for async layout auditing but not real-time orchestration. *(Full analysis in `gemini-comparison-section.md` + `pro/pro-synthesis-annotated.md` on the cloud-gemini-compare branch.)*
+**Decision**: All-local architecture is viable for the interactive application. Cloud is a fallback for tasks exceeding local capacity, not the default orchestration layer. Pro-tier adds V1 depth (27-139 elements) at massive latency cost — useful for async layout auditing but not real-time orchestration. *(Full analysis in `gemini-comparison-section.md` + `pro/pro-synthesis-annotated.md` on the cloud-gemini-compare branch.)*
 
 ---
 
@@ -406,7 +406,7 @@ Without the fork, the production-ready roster would be just Qwen3-4B (text) and 
 | Is I6 dedup safe? | Yes — effective for WaveCut, no regressions. Nanbeige failure was non-determinism. | Exp 6, multi-run |
 | Can VLMs do tool calling? | Yes post-I7 — both 9/9, image+tool works | Exp 6 I7 |
 | Is cloud needed for orchestration? | No — local matches cloud flash-tier on tools + reasoning | Exp 7 |
-| Is cloud faster for UI agents? | No — 10-103s latency per call is prohibitive | Exp 7 |
+| Is cloud faster for interactive applications? | No — 10-103s latency per call is prohibitive | Exp 7 |
 | Can Pro-tier cloud overcome V1 under-enumeration? | Yes — all 3 Pro models produce 27-139 elements, but at 29-103s latency | Exp 7 Pro retest |
 | Is gemma-3n viable? | No — mlx_vlm structurally missing AltUp architecture (1709 params). Not just a config bug. | HF survey recheck |
 | Is Nanbeige's 60% pass rate improvable? | No — budget sweep (256/384/512) shows 256 is optimal; higher budgets hurt. 60% is the 3B ceiling. | Nanbeige multi-run |
@@ -417,7 +417,7 @@ Without the fork, the production-ready roster would be just Qwen3-4B (text) and 
 
 ## Architectural Implications
 
-The research phase answers the core architectural question: **can a fully local inference stack support an interactive UI assistant on Apple Silicon?**
+The research phase answers the core architectural question: **can a fully local inference stack support an interactive application on Apple Silicon?**
 
 **Yes.**
 
@@ -449,7 +449,7 @@ All zero-latency, all on-device, all running on unified memory. Cloud is optiona
 
 ## What Comes Next: The Multi-Step Agent Challenge
 
-Everything tested so far has been single-turn: one prompt, one response, score it. Production UI agents don't work that way. They execute multi-step workflows — observe screen, decide action, execute tool, observe result, decide next action — where errors compound across turns.
+Everything tested so far has been single-turn: one prompt, one response, score it. Production agents don't work that way. They execute multi-step workflows — observe screen, decide action, execute tool, observe result, decide next action — where errors compound across turns.
 
 This is the transition from **model evaluation** to **system evaluation**:
 
@@ -477,7 +477,7 @@ This is the next chapter of the project.
 
 ## Connecting to the Broader Literature
 
-*Reserved. This section will be populated after a structured peer review of the research methodology, prompting strategies, and evaluation rubrics used in this project — incorporating findings from academic papers and cross-agent review (Gemini, Codex, Claude) of our experimental protocols.*
+*Reserved. This section will be populated after a structured peer review of the research methodology, prompting strategies, and evaluation rubrics used in this project — incorporating findings from academic papers and cross-disciplinary review of our experimental protocols.*
 
 *Key areas to connect:*
 - *How our 4-tier benchmark design compares to established LLM evaluation frameworks*

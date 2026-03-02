@@ -67,7 +67,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 
 ## P1.5 — Phase 1.5: Launch Packaging (parallel with Phase 1)
 
-**Agent:** Codex (when available)
+**Status:** Ready to start
 **Design:** `docs/plans/2026-02-28-v01-launch-design.md`
 
 - [ ] README.md overhaul (install, usage, architecture, evidence, badges)
@@ -156,10 +156,10 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | 2026-02-25 | TDD approach with pytest | Every check function has tests; enables confident refactoring |
 | 2026-02-28 | v0.1 = Tier 0 + Tier 1 + full packaging (Option C) | Contribution-ready first impression for flywheel |
 | 2026-02-28 | GitHub + PyPI first, blog post fast follow | Get installable, then drive traffic |
-| 2026-02-28 | Claude Code primary, Codex for packaging | Matches multi-agent ecosystem; memo checkpoints for big decisions |
+| 2026-02-28 | Parallel packaging workstream | Packaging tasks can run independently of core development |
 | 2026-02-28 | Reference divergence as optional dep | Core differentiator; graceful skip if not installed |
 | 2026-02-28 | Shared model loading in run_tier1() | Checks take (model, tokenizer, model_path); avoids 3x multi-GB load |
-| 2026-02-28 | Context resilience: files + Sediment + server-memory + git | Belt and suspenders until Falcor DB memory migration |
+| 2026-02-28 | Context resilience: files + git at every task boundary | Multiple redundant state preservation mechanisms |
 
 ---
 
@@ -167,8 +167,6 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 
 | Feature area | Primary approach | Notes |
 |-------------|-----------------|-------|
-| Tier 0 checks | Subagent-driven TDD | Independent modules, parallel-safe |
+| Tier 0 checks | TDD per check module | Independent modules, parallel-safe |
 | Tier 1 (inference) | Sequential, needs MLX | Requires actual model loading |
 | Tier 3 (activation) | Research-heavy | May need MLX internals expertise |
-
-See `docs/agents.md` for full agent orchestration guide.
