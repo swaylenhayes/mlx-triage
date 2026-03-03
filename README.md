@@ -17,56 +17,7 @@ pip install mlx-triage
 mlx-triage check ./my-model
 ```
 
-### Example Output
-
-<details>
-<summary>Tier 0 terminal output (click to expand)</summary>
-
-```
-╭──────────────────────────────────── mlx-triage ────────────────────────────────────╮
-│ Tier 0 Diagnostic Report                                                           │
-│ Model: ./Llama-3.2-1B-Instruct-4bit                                                │
-│ Time: 2026-03-03T06:54:17+00:00                                                    │
-╰────────────────────────────────────────────────────────────────────────────────────╯
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Check                          ┃   Status   ┃ Detail                              ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ 0.1 Dtype Compatibility        │    PASS    │ Quantized model. Training dtype:    │
-│                                │            │ bfloat16.                           │
-│ 0.2 Tokenizer Config           │    PASS    │ EOS token: <|eot_id|>. Chat         │
-│                                │            │ template: present.                  │
-│ 0.3 Weight File Integrity      │    PASS    │ Checked 5 tensor(s) across 1        │
-│                                │            │ shard(s) — no anomalies found.      │
-│ 0.4 MLX Version & Known Bugs  │    INFO    │ MLX 0.24.1. No known bugs for this  │
-│                                │            │ architecture.                       │
-└────────────────────────────────┴────────────┴────────────────────────────────────────┘
-╭──────────────────────────────────── Verdict ────────────────────────────────────────╮
-│ PASS — 0 issue(s) found.                                                            │
-│ Proceed to Tier 1: Yes                                                              │
-╰────────────────────────────────────────────────────────────────────────────────────╯
-```
-
-</details>
-
-<details>
-<summary>JSON output</summary>
-
-```json
-{
-  "tier": 0,
-  "model": "./Llama-3.2-1B-Instruct-4bit",
-  "checks": {
-    "0.1": { "status": "PASS", "detail": "Quantized model. Training dtype: bfloat16." },
-    "0.2": { "status": "PASS", "detail": "EOS token: <|eot_id|>. Chat template: present." },
-    "0.3": { "status": "PASS", "detail": "Checked 5 tensor(s) across 1 shard(s)." },
-    "0.4": { "status": "INFO", "detail": "MLX 0.24.1. No known bugs." }
-  },
-  "verdict": "PASS — 0 issue(s) found.",
-  "should_continue": true
-}
-```
-
-</details>
+![mlx-triage demo](docs/assets/demo.gif)
 
 ## What It Checks
 
