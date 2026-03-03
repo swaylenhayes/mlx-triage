@@ -28,8 +28,16 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
             detail="tokenizer_config.json not found in model directory.",
         )
 
-    with open(tokenizer_path) as f:
-        tok_config = json.load(f)
+    try:
+        with open(tokenizer_path) as f:
+            tok_config = json.load(f)
+    except (json.JSONDecodeError, OSError) as exc:
+        return DiagnosticResult(
+            check_id="0.2",
+            name="Tokenizer Config",
+            status=CheckStatus.FAIL,
+            detail=f"Failed to parse tokenizer_config.json: {exc}",
+        )
 
     issues: list[str] = []
     remediations: list[str] = []
@@ -54,8 +62,11 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
     # Check for generation_config.json stop tokens
     gen_config_path = path / "generation_config.json"
     if gen_config_path.exists():
-        with open(gen_config_path) as f:
-            gen_config = json.load(f)
+        try:
+            with open(gen_config_path) as f:
+                gen_config = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            gen_config = {}
 
         # Check if multiple stop tokens are needed but not all configured
         eos_token_id = gen_config.get("eos_token_id")

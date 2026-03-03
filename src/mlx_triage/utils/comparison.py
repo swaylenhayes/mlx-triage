@@ -41,7 +41,13 @@ def multi_run_consistency(runs: list[list[int]]) -> dict:
         min_agreement, max_agreement, num_runs.
     """
     if len(runs) < 2:
-        return {"consistent": True, "agreement_rate": 1.0, "num_runs": len(runs)}
+        return {
+            "consistent": True,
+            "agreement_rate": 1.0,
+            "min_agreement": 1.0,
+            "max_agreement": 1.0,
+            "num_runs": len(runs),
+        }
 
     reference = runs[0]
     agreements = [token_agreement_rate(reference, run) for run in runs[1:]]

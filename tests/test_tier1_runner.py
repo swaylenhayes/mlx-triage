@@ -112,3 +112,34 @@ def test_run_tier1_model_path_in_report():
                         report = run_tier1("/fake/model")
 
     assert report.model == "/fake/model"
+
+
+def test_run_tier1_loads_model_once():
+    """Model should be loaded exactly once, not per-check."""
+    mock_model = MagicMock()
+    mock_tokenizer = MagicMock()
+
+    with patch("mlx_triage.tier1.check_mlx_available", return_value=True):
+        with patch("mlx_triage.tier1.load_model", return_value=(mock_model, mock_tokenizer)) as mock_load:
+            with patch(
+                "mlx_triage.tier1.check_determinism",
+                return_value=_make_pass_result("1.1", "Determinism"),
+            ) as mock_det:
+                with patch(
+                    "mlx_triage.tier1.check_reference_divergence",
+                    return_value=_make_pass_result("1.2", "Reference Divergence"),
+                ) as mock_ref:
+                    with patch(
+                        "mlx_triage.tier1.check_quantization_quality",
+                        return_value=_make_pass_result("1.3", "Quantization Quality"),
+                    ) as mock_quant:
+                        run_tier1("/fake/model")
+
+    # load_model called exactly once
+    mock_load.assert_called_once_with("/fake/model")
+
+    # Each check received model and tokenizer kwargs
+    for mock_check in (mock_det, mock_ref, mock_quant):
+        call_kwargs = mock_check.call_args[1]
+        assert call_kwargs["model"] is mock_model
+        assert call_kwargs["tokenizer"] is mock_tokenizer

@@ -71,11 +71,15 @@ def _compute_perplexity(model, tokenizer, text: str) -> float:
 
 def check_quantization_quality(
     model_path: str,
+    model: object | None = None,
+    tokenizer: object | None = None,
 ) -> DiagnosticResult:
     """Run quantization quality gate using perplexity measurement.
 
     Args:
         model_path: Path to MLX model directory.
+        model: Pre-loaded MLX model (optional, avoids redundant loading).
+        tokenizer: Pre-loaded tokenizer (optional, avoids redundant loading).
     """
     if not check_mlx_available():
         return DiagnosticResult(
@@ -86,7 +90,8 @@ def check_quantization_quality(
             remediation="Install MLX: uv sync --extra mlx",
         )
 
-    model, tokenizer = load_model(model_path)
+    if model is None or tokenizer is None:
+        model, tokenizer = load_model(model_path)
 
     try:
         ppl = _compute_perplexity(model, tokenizer, EVAL_CORPUS)

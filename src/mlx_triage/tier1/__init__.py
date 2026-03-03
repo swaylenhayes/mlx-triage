@@ -13,8 +13,7 @@ def run_tier1(model_path: str) -> TierReport:
     """Run all Tier 1 checks.
 
     If MLX is not available, all checks are skipped.
-    Currently each check loads the model independently; shared model
-    loading is a planned optimisation.
+    The model is loaded once and shared across all checks.
     """
     if not check_mlx_available():
         return TierReport.create(
@@ -45,10 +44,12 @@ def run_tier1(model_path: str) -> TierReport:
             ],
         )
 
+    model, tokenizer = load_model(model_path)
+
     checks = [
-        check_determinism(model_path),
-        check_reference_divergence(model_path),
-        check_quantization_quality(model_path),
+        check_determinism(model_path, model=model, tokenizer=tokenizer),
+        check_reference_divergence(model_path, model=model, tokenizer=tokenizer),
+        check_quantization_quality(model_path, model=model, tokenizer=tokenizer),
     ]
 
     return TierReport.create(tier=1, model=model_path, checks=checks)

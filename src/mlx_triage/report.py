@@ -51,7 +51,7 @@ def render_json(report: TierReport) -> str:
 def render_terminal(report: TierReport) -> str:
     """Render a TierReport as a Rich terminal string."""
     buf = StringIO()
-    console = Console(file=buf, force_terminal=True, width=100)
+    console = Console(file=buf, force_terminal=True)
 
     # Header
     console.print()
@@ -102,12 +102,22 @@ def render_terminal(report: TierReport) -> str:
     return buf.getvalue()
 
 
-def write_report(report: TierReport, path: str, fmt: str = "json") -> None:
-    """Write a report to a file."""
+def write_reports(reports: list[TierReport], path: str, fmt: str = "json") -> None:
+    """Write one or more reports to a file.
+
+    Args:
+        reports: List of TierReport objects (usually [tier0] or [tier0, tier1]).
+        path: Output file path.
+        fmt: Format — ``"json"`` or ``"terminal"``.
+    """
     if fmt == "json":
-        content = render_json(report)
+        if len(reports) == 1:
+            content = render_json(reports[0])
+        else:
+            all_reports = [json.loads(render_json(r)) for r in reports]
+            content = json.dumps(all_reports, indent=2)
     else:
-        content = render_json(report)  # Default to JSON for file output
+        content = "\n".join(render_terminal(r) for r in reports)
 
     with open(path, "w") as f:
         f.write(content)

@@ -29,7 +29,7 @@ def cli() -> None:
 @click.option(
     "--format",
     "fmt",
-    type=click.Choice(["json", "terminal", "markdown"]),
+    type=click.Choice(["json", "terminal"]),
     default="terminal",
     help="Output format.",
 )
@@ -38,7 +38,7 @@ def check(model_path: str, tier: int, output: str | None, fmt: str) -> None:
     import json as json_mod
 
     from mlx_triage.models import CheckStatus
-    from mlx_triage.report import render_json, render_terminal, write_report
+    from mlx_triage.report import render_json, render_terminal, write_reports
     from mlx_triage.tier0 import run_tier0
 
     reports = []
@@ -65,7 +65,7 @@ def check(model_path: str, tier: int, output: str | None, fmt: str) -> None:
 
     # Output
     if output:
-        write_report(reports[-1], output, fmt=fmt)
+        write_reports(reports, output, fmt=fmt)
         click.echo(f"Report saved to {output}")
     elif fmt == "json":
         if len(reports) == 1:

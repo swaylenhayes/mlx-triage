@@ -25,8 +25,17 @@ class KnownBug:
 
 
 def _parse_version(v: str) -> tuple[int, ...]:
-    """Parse a version string like '0.22.0' into a comparable tuple."""
-    return tuple(int(x) for x in v.strip().split("."))
+    """Parse a version string like '0.22.0' into a comparable tuple.
+
+    Stops at the first non-numeric component, so '0.22.0.dev0' -> (0, 22, 0).
+    """
+    parts: list[int] = []
+    for x in v.strip().split("."):
+        try:
+            parts.append(int(x))
+        except ValueError:
+            break
+    return tuple(parts)
 
 
 def _version_matches(installed: str, constraint: str) -> bool:

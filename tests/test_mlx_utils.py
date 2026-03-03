@@ -15,8 +15,7 @@ from mlx_triage.utils.mlx_utils import (
 
 def test_check_mlx_available_when_missing():
     with patch.dict("sys.modules", {"mlx": None, "mlx_lm": None}):
-        # Reimport to pick up mocked modules
-        assert check_mlx_available() is False or True  # Depends on env
+        assert check_mlx_available() is False
 
 
 def test_generation_result_dataclass():

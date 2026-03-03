@@ -4,10 +4,24 @@ import json
 from unittest.mock import patch
 
 from mlx_triage.models import CheckStatus
-from mlx_triage.tier0.version_check import check_mlx_version
+from mlx_triage.tier0.version_check import _get_mlx_version, check_mlx_version
 
 
 _VERSION_PATCH = "mlx_triage.tier0.version_check._get_mlx_version"
+
+
+def test_get_mlx_version_uses_importlib_metadata():
+    """_get_mlx_version should return a version string via importlib.metadata.
+
+    Regression test: MLX's compiled module has no __version__ attribute.
+    The function must use importlib.metadata.version() instead.
+    """
+    result = _get_mlx_version()
+    # In CI without mlx, this could be None — that's fine.
+    # But if mlx IS installed, it must return a valid version string.
+    if result is not None:
+        assert isinstance(result, str)
+        assert "." in result, f"Expected semver-like string, got: {result}"
 
 
 def test_current_version_llama_no_critical(good_model):

@@ -31,6 +31,8 @@ def check_determinism(
     n_runs: int = 10,
     n_prompts: int = 5,
     seed: int = 42,
+    model: object | None = None,
+    tokenizer: object | None = None,
 ) -> DiagnosticResult:
     """Run determinism check: same prompt N times at temp=0, compare outputs.
 
@@ -39,6 +41,8 @@ def check_determinism(
         n_runs: Number of times to run each prompt.
         n_prompts: Number of prompts to test (from diagnostic suite).
         seed: Random seed for reproducibility.
+        model: Pre-loaded MLX model (optional, avoids redundant loading).
+        tokenizer: Pre-loaded tokenizer (optional, avoids redundant loading).
     """
     if not check_mlx_available():
         return DiagnosticResult(
@@ -49,7 +53,8 @@ def check_determinism(
             remediation="Install MLX: uv sync --extra mlx",
         )
 
-    model, tokenizer = load_model(model_path)
+    if model is None or tokenizer is None:
+        model, tokenizer = load_model(model_path)
     prompts = DIAGNOSTIC_PROMPTS[:n_prompts]
 
     all_consistencies: list[dict] = []

@@ -19,10 +19,10 @@ CHECK_NAME = "MLX Version & Known Bug Check"
 def _get_mlx_version() -> str | None:
     """Return the installed MLX version string, or None if MLX is not installed."""
     try:
-        import mlx  # type: ignore[import-untyped]
+        from importlib.metadata import PackageNotFoundError, version
 
-        return mlx.__version__  # type: ignore[no-any-return]
-    except (ImportError, AttributeError):
+        return version("mlx")
+    except PackageNotFoundError:
         return None
 
 
@@ -58,8 +58,17 @@ def check_mlx_version(model_path: str) -> DiagnosticResult:
             metadata={"mlx_version": mlx_version},
         )
 
-    with open(config_path) as f:
-        config = json.load(f)
+    try:
+        with open(config_path) as f:
+            config = json.load(f)
+    except (json.JSONDecodeError, OSError) as exc:
+        return DiagnosticResult(
+            check_id=CHECK_ID,
+            name=CHECK_NAME,
+            status=CheckStatus.FAIL,
+            detail=f"Failed to parse config.json: {exc}",
+            metadata={"mlx_version": mlx_version},
+        )
 
     architecture = config.get("model_type", "unknown")
 
@@ -96,7 +105,9 @@ def check_mlx_version(model_path: str) -> DiagnosticResult:
 
     if "critical" in effective_severities:
         status = CheckStatus.CRITICAL
-    elif "high" in effective_severities or "warning" in effective_severities:
+    elif "high" in effective_severities:
+        status = CheckStatus.FAIL
+    elif "warning" in effective_severities:
         status = CheckStatus.WARNING
     else:
         status = CheckStatus.INFO

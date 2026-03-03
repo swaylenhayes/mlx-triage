@@ -77,7 +77,10 @@ def _dominant_stored_dtype(model_path: Path) -> str | None:
     dtype_counts: dict[str, int] = {}
 
     for sf_path in sorted(model_path.glob("*.safetensors")):
-        header = _read_safetensors_header(sf_path)
+        try:
+            header = _read_safetensors_header(sf_path)
+        except (ValueError, json.JSONDecodeError, OSError):
+            continue
         for key, meta in header.items():
             if key == "__metadata__":
                 continue
@@ -115,8 +118,17 @@ def check_dtype_compatibility(model_path: str) -> DiagnosticResult:
             metadata={"model_path": model_path},
         )
 
-    with open(config_path) as f:
-        config = json.load(f)
+    try:
+        with open(config_path) as f:
+            config = json.load(f)
+    except (json.JSONDecodeError, OSError) as exc:
+        return DiagnosticResult(
+            check_id=CHECK_ID,
+            name=CHECK_NAME,
+            status=CheckStatus.FAIL,
+            detail=f"Failed to parse config.json: {exc}",
+            metadata={"model_path": model_path},
+        )
 
     # --- Determine training dtype ---
     raw_training = config.get("torch_dtype")

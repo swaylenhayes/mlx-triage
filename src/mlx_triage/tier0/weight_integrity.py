@@ -12,7 +12,9 @@ Failure modes detected:
 from __future__ import annotations
 
 import glob
+import json
 import logging
+import struct
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +33,28 @@ MAX_TENSORS_PER_SHARD = 5
 
 # Tensors with fewer elements than this are not flagged for all-zero
 ALL_ZERO_MIN_ELEMENTS = 16
+
+# Dtypes that numpy cannot load (require special handling)
+_NUMPY_UNSUPPORTED_DTYPES = {"BF16"}
+
+
+def _read_shard_dtypes(shard_path: str) -> set[str]:
+    """Read the safetensors header and return the set of dtypes used."""
+    try:
+        with open(shard_path, "rb") as f:
+            raw_len = f.read(8)
+            if len(raw_len) < 8:
+                return set()
+            header_len = struct.unpack("<Q", raw_len)[0]
+            header_bytes = f.read(header_len)
+        header = json.loads(header_bytes)
+        return {
+            meta.get("dtype", "")
+            for key, meta in header.items()
+            if key != "__metadata__" and isinstance(meta, dict)
+        }
+    except Exception:
+        return set()
 
 
 def check_weight_integrity(model_path: str) -> DiagnosticResult:
@@ -66,6 +90,30 @@ def check_weight_integrity(model_path: str) -> DiagnosticResult:
 
     # Cap to MAX_SHARDS
     sampled_shards = shard_paths[:MAX_SHARDS]
+
+    # Check for BF16-only shards before attempting numpy load
+    all_bf16 = True
+    for sp in sampled_shards:
+        dtypes = _read_shard_dtypes(sp)
+        if not dtypes or not dtypes.issubset(_NUMPY_UNSUPPORTED_DTYPES):
+            all_bf16 = False
+            break
+
+    if all_bf16:
+        return DiagnosticResult(
+            check_id=CHECK_ID,
+            name=CHECK_NAME,
+            status=CheckStatus.INFO,
+            detail=(
+                "Weight files use BF16 format, which cannot be inspected with "
+                "numpy. Use --tier 1 for MLX-based inference verification."
+            ),
+            metadata={
+                "shard_count": len(shard_paths),
+                "dtype": "BF16",
+                "reason": "numpy_unsupported_dtype",
+            },
+        )
 
     nan_tensors: list[str] = []
     inf_tensors: list[str] = []

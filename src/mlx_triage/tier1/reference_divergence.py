@@ -56,7 +56,7 @@ def _generate_reference(
 
     ref_tokenizer = AutoTokenizer.from_pretrained(model_path)
     ref_model = AutoModelForCausalLM.from_pretrained(
-        model_path, torch_dtype=torch.float16, device_map="cpu"
+        model_path, torch_dtype=torch.float32, device_map="cpu"
     )
 
     inputs = ref_tokenizer(prompt, return_tensors="pt")
@@ -78,6 +78,8 @@ def check_reference_divergence(
     model_path: str,
     n_prompts: int = 5,
     seed: int = 42,
+    model: object | None = None,
+    tokenizer: object | None = None,
 ) -> DiagnosticResult:
     """Compare MLX output against Transformers reference.
 
@@ -85,6 +87,8 @@ def check_reference_divergence(
         model_path: Path to MLX model directory.
         n_prompts: Number of prompts to test.
         seed: Random seed for MLX generation.
+        model: Pre-loaded MLX model (optional, avoids redundant loading).
+        tokenizer: Pre-loaded tokenizer (optional, avoids redundant loading).
     """
     if not check_mlx_available():
         return DiagnosticResult(
@@ -104,7 +108,8 @@ def check_reference_divergence(
             remediation="Install reference dependencies: uv sync --extra reference",
         )
 
-    model, tokenizer = load_model(model_path)
+    if model is None or tokenizer is None:
+        model, tokenizer = load_model(model_path)
     prompts = [p for p in DIAGNOSTIC_PROMPTS[:n_prompts] if isinstance(p["prompt"], str)]
 
     comparisons: list[dict] = []
