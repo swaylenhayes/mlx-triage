@@ -2,7 +2,7 @@
 
 _Last updated: 2026-03-03_
 
-> Items organized by priority tier (P0–P3). P0 = must have / blocking. P3 = backlog / future.
+> Items organized by priority tier (P0-P3). P0 = must have / blocking. P3 = backlog / future.
 
 ---
 
@@ -39,7 +39,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 - [x] Test 1.2: Reference divergence (MLX vs Transformers)
 - [x] Test 1.3: Quantization quality gate (perplexity)
 - [x] Tier 1 runner with shared model loading
-- [x] E2E validation on 15 real models (M2 Max)
+- [x] E2E validation on 13 real models (M2 Max)
 
 **Ship criteria:** Tier 0+1 correctly identifies known-good as PASS and broken configs as FAIL. **MET.**
 
@@ -65,15 +65,18 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 
 ---
 
-## P1.5b — Publish v0.1 (NEXT)
+## P1.5b — Publish v0.1 (IN PROGRESS)
 
-- [ ] Create GitHub repository (public)
-- [ ] Push all code
-- [ ] Verify CI passes (3 Python versions on macOS)
+- [x] Create GitHub repository (public)
+- [x] Push all code
+- [x] Verify CI passes (3 Python versions on macOS)
+- [x] Git tag `v0.1.0`
+- [x] GitHub release with release notes
+- [x] Pre-publish security/attribution audit
+- [x] README and presentation polish (flywheel + evangelist audit)
 - [ ] Publish to PyPI (`uv build` + `uv publish`)
-- [ ] Git tag `v0.1.0`
-- [ ] Replace static test/CI badges with live GitHub Actions badges
-- [ ] Blog post (human work — outline at `docs/plans/blog-post-outline.md`)
+- [ ] Replace static badges with live CI/PyPI badges
+- [ ] Blog post (outline at `_private/plans/blog-post-outline.md`)
 - [ ] Community outreach (HN, r/LocalLLaMA, MLX Discussions)
 
 **Ship criteria:** `pip install mlx-triage` works from clean venv. Blog post live.
@@ -122,11 +125,13 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Research evidence collection | Pre-project | 2026-02-25 | 11 frontier model analyses, 2 systematic reviews |
 | Phase 0 implementation | Phase 0 | 2026-02-25 | 54 tests, 4 checks, CLI + reports |
 | v0.1 launch design | Phase 1 | 2026-02-28 | Approved design doc |
-| Phase 1 implementation | Phase 1 | 2026-02-28 | 9 tasks, E2E validated on 15 models |
+| Phase 1 implementation | Phase 1 | 2026-02-28 | 9 tasks, E2E validated on 13 models |
 | Docs audit | Phase 1.5 | 2026-03-02 | Scrubbed 11 files, no AI attribution |
 | Pre-launch bug audit | Phase 1.5 | 2026-03-02 | 15 bugs fixed, 102 tests |
 | Launch packaging | Phase 1.5 | 2026-03-03 | README, CONTRIBUTING, METHODOLOGY, CI, issue templates, demo GIF |
 | Flywheel optimization | Phase 1.5 | 2026-03-03 | Two audits, badges, emotional hook, example output |
+| GitHub publish | Phase 1.5b | 2026-03-03 | Repo live, CI green, v0.1.0 tagged and released |
+| Presentation polish | Phase 1.5b | 2026-03-03 | Flywheel + evangelist audits, description/tags/README rewrite |
 
 ---
 
@@ -143,4 +148,6 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | 2026-02-28 | Reference divergence as optional dep | Core differentiator; graceful skip if not installed |
 | 2026-02-28 | Shared model loading in run_tier1() | Avoids 3x multi-GB load |
 | 2026-03-03 | Publish to PyPI — YES | Both audit agents agree; README promises it; wheel builds clean |
-| 2026-03-03 | Alpha classifier (not Beta) | More honest for v0.1 pre-PyPI |
+| 2026-03-03 | Alpha classifier (not Beta) | More honest for v0.1 |
+| 2026-03-03 | Plans moved to _private | Internal workflow language not suitable for public repo |
+| 2026-03-03 | Validation trimmed to 13 models | Removed incomplete download and wrong model type — not real results |
