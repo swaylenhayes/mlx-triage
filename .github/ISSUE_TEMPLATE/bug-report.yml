@@ -1,0 +1,40 @@
+name: Bug Report
+description: Report a bug in mlx-triage itself
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug. What did you expect vs. what actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Commands or steps to trigger the issue.
+      placeholder: |
+        1. mlx-triage check /path/to/model
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your system details.
+      placeholder: |
+        - mlx-triage version: 0.1.0
+        - Python version: 3.13
+        - macOS version: 15.x
+        - Chip: M2 Max
+        - MLX version (if installed): 0.24.1
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output or error
+      description: Paste the terminal output or error traceback.
+      render: shell

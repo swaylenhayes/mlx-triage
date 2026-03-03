@@ -1,0 +1,71 @@
+name: Report a Known MLX Bug
+description: Report a documented MLX bug to add to the known bugs database
+labels: ["known-bug", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the known bugs database! This information will be
+        added to `src/mlx_triage/data/known_bugs.yaml` so mlx-triage can warn users
+        about this issue automatically.
+  - type: input
+    id: title
+    attributes:
+      label: Bug title
+      description: Short description of the MLX bug.
+      placeholder: "Float16 addmm CPU wrong results"
+    validations:
+      required: true
+  - type: input
+    id: mlx_issue
+    attributes:
+      label: MLX GitHub issue
+      description: Link or issue number from the MLX repo (if available).
+      placeholder: "https://github.com/ml-explore/mlx/issues/1234"
+  - type: input
+    id: source
+    attributes:
+      label: Other source
+      description: If no GitHub issue, link to postmortem, blog post, or discussion.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - critical (completely wrong results, data corruption)
+        - high (significant quality degradation)
+        - warning (minor impact, workaround available)
+    validations:
+      required: true
+  - type: input
+    id: affected_versions
+    attributes:
+      label: Affected MLX versions
+      description: Version range or "all".
+      placeholder: "< 0.24.0"
+    validations:
+      required: true
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Symptom
+      description: What does the user see when this bug affects them?
+      placeholder: "Model enters infinite generation loop at end of long prompts"
+    validations:
+      required: true
+  - type: input
+    id: architecture
+    attributes:
+      label: Affected architectures
+      description: Model families affected, or "all".
+      placeholder: "llama, mistral"
+    validations:
+      required: true
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Remediation
+      description: What should the user do to work around this?
+      placeholder: "Upgrade MLX to 0.24.0+ or use 8-bit quantization"
+    validations:
+      required: true
