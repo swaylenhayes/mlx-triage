@@ -78,19 +78,3 @@ def check(model_path: str, tier: int, output: str | None, fmt: str) -> None:
             click.echo(render_terminal(report))
 
 
-@cli.command()
-@click.argument("model_path", type=click.Path(exists=True))
-@click.option("--output", type=click.Path(), required=True, help="Output file path.")
-def report(model_path: str, output: str) -> None:
-    """Generate a full diagnostic report."""
-    click.echo(f"Generating report for {model_path}...")
-    # TODO: Wire to full multi-tier report generator
-
-
-@cli.command()
-@click.argument("model_a", type=click.Path(exists=True))
-@click.argument("model_b", type=click.Path(exists=True))
-def compare(model_a: str, model_b: str) -> None:
-    """Compare diagnostics between two models."""
-    click.echo(f"Comparing {model_a} vs {model_b}...")
-    # TODO: Wire to comparison logic

@@ -24,13 +24,9 @@ def test_check_command_exists():
     assert "MODEL_PATH" in result.output
 
 
-def test_report_command_exists():
+def test_removed_commands_not_exposed():
+    """Stub commands (report, compare) should not be in the CLI for v0.1."""
     runner = CliRunner()
-    result = runner.invoke(cli, ["report", "--help"])
-    assert result.exit_code == 0
-
-
-def test_compare_command_exists():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["compare", "--help"])
-    assert result.exit_code == 0
+    result = runner.invoke(cli, ["--help"])
+    assert "report" not in result.output
+    assert "compare" not in result.output

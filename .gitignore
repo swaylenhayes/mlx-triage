@@ -1,5 +1,6 @@
 # OS
 .DS_Store
+**/.DS_Store
 
 # Editors
 .idea/
@@ -25,7 +26,7 @@ build/
 
 # Dev workflow (not public)
 _private/
+CLAUDE.md
 
 # MLX knowledge corpus (local reference, auto-synced)
 _docs/mlx-knowledge/
-!_docs/mlx-knowledge/INDEX.md
