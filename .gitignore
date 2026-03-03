@@ -28,6 +28,7 @@ build/
 _private/
 CLAUDE.md
 .sediment/
+scripts/
 
 # MLX knowledge corpus (local reference, auto-synced)
 _docs/mlx-knowledge/
