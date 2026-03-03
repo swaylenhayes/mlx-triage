@@ -4,7 +4,7 @@
 ![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-black.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests: 102 passing](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
-![Models Validated: 15](https://img.shields.io/badge/models%20validated-15-orange.svg)
+![Models Validated: 13](https://img.shields.io/badge/models%20validated-13-orange.svg)
 
 **Diagnose MLX model quality issues on Apple Silicon.**
 
@@ -21,7 +21,7 @@ mlx-triage check ./my-model
 
 ## What It Checks
 
-Validated against 15 models across 5 families, 4 quantization levels (bf16 through 4-bit), and sizes from 0.6B to 30B parameters. Zero false negatives. [Full results](docs/validation-results.md).
+Validated against 13 models across 5 families, 4 quantization levels (bf16 through 4-bit), and sizes from 0.6B to 30B parameters. Zero false negatives. [Full results](docs/validation-results.md).
 
 ### Tier 0 — Sanity Checks (no MLX needed, < 30 seconds)
 
