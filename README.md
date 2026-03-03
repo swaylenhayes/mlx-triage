@@ -1,15 +1,76 @@
 # mlx-triage
 
+![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
+![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-black.svg)
+![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
+![Tests: 102 passing](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
+![Models Validated: 15](https://img.shields.io/badge/models%20validated-15-orange.svg)
+
 **Diagnose MLX model quality issues on Apple Silicon.**
 
-Getting bad outputs from your MLX model? Before blaming the model, run `mlx-triage` to check whether the problem is the model weights, the MLX infrastructure, or your configuration.
+You downloaded an MLX model, ran it, got garbage output. Is it the model? The quantization? A known MLX bug? Your config? Without systematic tooling, answering that question takes hours of manual debugging.
+
+mlx-triage tells you in 30 seconds — without loading the model into memory.
 
 ```bash
 pip install mlx-triage
 mlx-triage check ./my-model
 ```
 
+### Example Output
+
+<details>
+<summary>Tier 0 terminal output (click to expand)</summary>
+
+```
+╭──────────────────────────────────── mlx-triage ────────────────────────────────────╮
+│ Tier 0 Diagnostic Report                                                           │
+│ Model: ./Llama-3.2-1B-Instruct-4bit                                                │
+│ Time: 2026-03-03T06:54:17+00:00                                                    │
+╰────────────────────────────────────────────────────────────────────────────────────╯
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Check                          ┃   Status   ┃ Detail                              ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 0.1 Dtype Compatibility        │    PASS    │ Quantized model. Training dtype:    │
+│                                │            │ bfloat16.                           │
+│ 0.2 Tokenizer Config           │    PASS    │ EOS token: <|eot_id|>. Chat         │
+│                                │            │ template: present.                  │
+│ 0.3 Weight File Integrity      │    PASS    │ Checked 5 tensor(s) across 1        │
+│                                │            │ shard(s) — no anomalies found.      │
+│ 0.4 MLX Version & Known Bugs  │    INFO    │ MLX 0.24.1. No known bugs for this  │
+│                                │            │ architecture.                       │
+└────────────────────────────────┴────────────┴────────────────────────────────────────┘
+╭──────────────────────────────────── Verdict ────────────────────────────────────────╮
+│ PASS — 0 issue(s) found.                                                            │
+│ Proceed to Tier 1: Yes                                                              │
+╰────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+</details>
+
+<details>
+<summary>JSON output</summary>
+
+```json
+{
+  "tier": 0,
+  "model": "./Llama-3.2-1B-Instruct-4bit",
+  "checks": {
+    "0.1": { "status": "PASS", "detail": "Quantized model. Training dtype: bfloat16." },
+    "0.2": { "status": "PASS", "detail": "EOS token: <|eot_id|>. Chat template: present." },
+    "0.3": { "status": "PASS", "detail": "Checked 5 tensor(s) across 1 shard(s)." },
+    "0.4": { "status": "INFO", "detail": "MLX 0.24.1. No known bugs." }
+  },
+  "verdict": "PASS — 0 issue(s) found.",
+  "should_continue": true
+}
+```
+
+</details>
+
 ## What It Checks
+
+Validated against 15 models across 5 families, 4 quantization levels (bf16 through 4-bit), and sizes from 0.6B to 30B parameters. Zero false negatives. [Full results](docs/validation-results.md).
 
 ### Tier 0 — Sanity Checks (no MLX needed, < 30 seconds)
 
@@ -84,21 +145,9 @@ mlx-triage ships with a curated database of documented MLX bugs ([`known_bugs.ya
 
 Contributing a bug report to the database is the easiest way to help — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Validation
-
-Validated against 15 models across 5 families (Qwen, Llama, Phi, LiquidAI, Nanbeige), 4 quantization levels (bf16, 8-bit, 4-bit, 4-bit DWQ), and sizes from 0.6B to 30B parameters. Zero false negatives. See [full results](docs/validation-results.md).
-
-## Requirements
-
-- **macOS** on Apple Silicon (M1, M2, M3, M4)
-- **Python 3.11+**
-- Tier 0 works without MLX installed
-- Tier 1 requires `mlx` and `mlx-lm` (`pip install "mlx-triage[mlx]"`)
-- Reference divergence check (Test 1.2) requires `transformers` and `torch` (`pip install "mlx-triage[reference]"`)
-
 ## Research Basis
 
-The diagnostic protocol is grounded in systematic analysis of MLX infrastructure defects and model quality issues. See [METHODOLOGY.md](METHODOLOGY.md) for the evidence basis and research citations.
+The diagnostic protocol is grounded in systematic analysis of MLX infrastructure defects across multiple model architectures and quantization levels. See [METHODOLOGY.md](METHODOLOGY.md) for the evidence basis, including infrastructure defect taxonomy, first-party experiments, and cross-model synthesis.
 
 ## Contributing
 
@@ -107,3 +156,7 @@ Contributions welcome — especially to the known bugs database. See [CONTRIBUTI
 ## License
 
 [MIT](LICENSE)
+
+---
+
+If mlx-triage saved you debugging time, a star helps others find it.

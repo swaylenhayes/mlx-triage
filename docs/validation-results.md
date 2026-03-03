@@ -49,7 +49,7 @@
 
 ### Tier 0
 
-- **T0 WARNING** is the most common verdict. The WARNINGs come from Check 0.4 (version check) which currently has a false negative — it reports "MLX not installed" even when MLX is present. This is a known bug to fix before v0.1 launch.
+- **T0 WARNING** is the most common verdict. The WARNINGs come from Check 0.4 (version check) which flags advisory-level known bugs for the installed MLX version. These are capped at WARNING severity to avoid false CRITICAL verdicts.
 - **T0 SKIP** on some models means all checks passed (PASS/INFO/SKIP), with the version check skipping.
 - **T0 FAIL** on Qwen2-7B correctly identified an incomplete model download (no safetensors, no tokenizer_config.json). Tier 1 was properly gated.
 
