@@ -1,5 +1,6 @@
 # tests/test_mlx_utils.py
 """Tests for MLX inference utilities. Mocks MLX to avoid hardware dependency."""
+import sys
 from unittest.mock import MagicMock, patch
 from dataclasses import dataclass
 
@@ -30,6 +31,17 @@ def test_generation_result_dataclass():
     assert result.logprobs is not None
 
 
+def _mock_mlx_lm_modules():
+    """Create mock mlx_lm modules so `from mlx_lm.sample_utils import make_sampler` succeeds."""
+    mock_sample_utils = MagicMock()
+    mock_mlx_lm = MagicMock()
+    mock_mlx_lm.sample_utils = mock_sample_utils
+    return {
+        "mlx_lm": mock_mlx_lm,
+        "mlx_lm.sample_utils": mock_sample_utils,
+    }
+
+
 def test_generate_text_collects_tokens():
     """Verify generate_text collects tokens and logprobs from stream."""
     mock_model = MagicMock()
@@ -48,7 +60,8 @@ def test_generate_text_collects_tokens():
         FakeResponse(text=" world", token=200, logprobs=[-0.3]),
     ]
 
-    with patch("mlx_triage.utils.mlx_utils._stream_generate", return_value=iter(responses)):
+    with patch("mlx_triage.utils.mlx_utils._stream_generate", return_value=iter(responses)), \
+         patch.dict("sys.modules", _mock_mlx_lm_modules()):
         result = generate_text(mock_model, mock_tokenizer, "test prompt")
 
     assert result.text == "Hello world"
@@ -74,7 +87,8 @@ def test_generate_text_handles_chat_messages():
 
     messages = [{"role": "user", "content": "Hello"}]
 
-    with patch("mlx_triage.utils.mlx_utils._stream_generate", return_value=iter(responses)):
+    with patch("mlx_triage.utils.mlx_utils._stream_generate", return_value=iter(responses)), \
+         patch.dict("sys.modules", _mock_mlx_lm_modules()):
         result = generate_text(mock_model, mock_tokenizer, messages)
 
     mock_tokenizer.apply_chat_template.assert_called_once()
