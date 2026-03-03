@@ -4,13 +4,11 @@
 ![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-black.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests: 102 passing](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
-![Models Validated: 13](https://img.shields.io/badge/models%20validated-13-orange.svg)
+![Validated: 13 models across 5 families](https://img.shields.io/badge/validated-13%20models%20across%205%20families-orange.svg)
 
-**Diagnose MLX model quality issues on Apple Silicon.**
+**Your MLX model is producing garbage. Is it the weights? A known MLX bug? Your quantization settings?**
 
-You downloaded an MLX model, ran it, got garbage output. Is it the model? The quantization? A known MLX bug? Your config? Without systematic tooling, answering that question takes hours of manual debugging.
-
-mlx-triage tells you in 30 seconds — without loading the model into memory.
+mlx-triage answers that in 30 seconds — without loading the model into memory.
 
 ```bash
 pip install mlx-triage
@@ -21,13 +19,13 @@ mlx-triage check ./my-model
 
 ## What It Checks
 
-Validated against 13 models across 5 families, 4 quantization levels (bf16 through 4-bit), and sizes from 0.6B to 30B parameters. Zero false negatives. [Full results](docs/validation-results.md).
+Tested against **13 models** across **5 families** (Llama, Qwen, Phi, LiquidAI, Nanbeige), **4 quantization levels** (bf16 through 4-bit), from 0.6B to 30B parameters. Zero false negatives. [Full validation results ->](docs/validation-results.md)
 
 ### Tier 0 — Sanity Checks (no MLX needed, < 30 seconds)
 
 | Check | What it catches |
 |-------|----------------|
-| **Dtype Compatibility** | BF16→FP16 precision loss, training/storage dtype mismatches |
+| **Dtype Compatibility** | BF16->FP16 precision loss, training/storage dtype mismatches |
 | **Tokenizer & EOS Config** | Missing EOS tokens, chat template issues, Llama 3 dual-stop-token edge cases |
 | **Weight File Integrity** | NaN/Inf values, all-zero layers, corrupt safetensors headers |
 | **MLX Version & Known Bugs** | Outdated MLX with documented bugs affecting your model architecture |
@@ -42,7 +40,7 @@ Validated against 13 models across 5 families, 4 quantization levels (bf16 throu
 
 ## Install
 
-Requires Python 3.11+ and macOS on Apple Silicon (M1–M4).
+Requires Python 3.11+ and macOS on Apple Silicon (M1-M4).
 
 ```bash
 # From PyPI
@@ -76,7 +74,7 @@ mlx-triage check /path/to/model --format json
 mlx-triage check /path/to/model --tier 1 --output report.json
 ```
 
-Tier 0 runs in under 30 seconds on any model. Tier 1 requires MLX and takes 5–15 minutes depending on model size.
+Tier 0 runs in under 30 seconds on any model. Tier 1 requires MLX and takes 5-15 minutes depending on model size.
 
 ## How It Works
 
@@ -86,13 +84,13 @@ mlx-triage uses a tiered diagnostic protocol — each tier increases in depth an
 
 2. **Tier 1** loads the model via MLX and runs statistical tests — determinism checks (10 runs at temp=0), perplexity measurement against a fixed eval corpus, and optional comparison against a PyTorch reference backend.
 
-3. **Tiers 2–3** (planned) will add isolation tests (batch invariance, memory pressure, context length stress) and deep diagnostics (layer-wise activation comparison, cross-runtime analysis).
+3. **Tiers 2-3** (planned) will add isolation tests (batch invariance, memory pressure, context length stress) and deep diagnostics (layer-wise activation comparison, cross-runtime analysis).
 
 If Tier 0 finds critical issues, Tier 1 is skipped — fix the fundamentals first.
 
 ## Known Bugs Database
 
-mlx-triage ships with a curated database of documented MLX bugs ([`known_bugs.yaml`](src/mlx_triage/data/known_bugs.yaml)), sourced from MLX GitHub issues and community postmortems. The version check cross-references your installed MLX version and model architecture against known issues.
+mlx-triage ships with a curated database of documented MLX bugs ([`known_bugs.yaml`](src/mlx_triage/data/known_bugs.yaml)), cross-referenced against your installed MLX version and model architecture. Running MLX < 0.22.0 with float16 weights? It flags the known qmv kernel overflow. Got a 4-bit Llama model looping on long prompts? There's a documented bug for that. Safetensors file looks valid but weights are numerically garbage? That's a known silent bfloat16 corruption path.
 
 Contributing a bug report to the database is the easiest way to help — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -110,4 +108,4 @@ Contributions welcome — especially to the known bugs database. See [CONTRIBUTI
 
 ---
 
-If mlx-triage saved you debugging time, a star helps others find it.
+If mlx-triage saved you a debugging session, **star it** — it helps other MLX developers find the tool.
