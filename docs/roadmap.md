@@ -76,7 +76,9 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 - [x] README and presentation polish
 - [x] Publish to PyPI (v0.1.0 + v0.1.1 live)
 - [x] Replace static badges with live CI/PyPI badges
+- [x] Expanded model validation (13 → 32 models, 10 families, 7 quant formats)
 - [ ] Blog post (outline at `_private/plans/blog-post-outline.md`)
+- [ ] Write-up: "Silent chat_template stripping in MLX Community conversions" — several popular model families (Ministral, GLM, Nemotron, Qwen3.5-MoE) ship without chat_template after conversion, causing silent prompt format fallback
 - [ ] Community outreach (HN, r/LocalLLaMA, MLX Discussions)
 
 **Ship criteria:** `pip install mlx-triage` works from clean venv. Blog post live.

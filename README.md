@@ -5,7 +5,7 @@
 [![Python 3.11+](https://img.shields.io/pypi/pyversions/mlx-triage.svg)](https://pypi.org/project/mlx-triage/)
 [![License: MIT](https://img.shields.io/github/license/swaylenhayes/mlx-triage.svg)](https://github.com/swaylenhayes/mlx-triage/blob/main/LICENSE)
 ![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-black.svg)
-![Validated: 13 models across 5 families](https://img.shields.io/badge/validated-13%20models%20across%205%20families-orange.svg)
+![Validated: 32 models across 10 families](https://img.shields.io/badge/validated-32%20models%20across%2010%20families-orange.svg)
 
 **Your MLX model is producing garbage. Is it the weights? A known MLX bug? Your quantization settings?**
 
@@ -20,7 +20,7 @@ mlx-triage check ./my-model
 
 ## What It Checks
 
-Tested against **13 models** across **5 families** (Llama, Qwen, Phi, LiquidAI, Nanbeige), **4 quantization levels** (bf16 through 4-bit), from 0.6B to 30B parameters. Zero false negatives. [Full validation results ->](docs/validation-results.md)
+Tested against **32 models** across **10 families** (Qwen, Gemma, GLM, Mistral/Devstral, LiquidAI, GPT-OSS, Nemotron, Llama, Phi, Nanbeige), **7 quantization formats** (bf16 through QAT 4-bit and MXFP4), from 0.6B to 35B parameters. Zero false negatives. [Full validation results ->](docs/validation-results.md)
 
 ### Tier 0 — Sanity Checks (no MLX needed, < 30 seconds)
 
