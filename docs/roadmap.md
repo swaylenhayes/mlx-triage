@@ -48,8 +48,8 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 ## P1.5 — Phase 1.5: Launch Packaging — COMPLETE
 
 - [x] Pre-launch bug audit (15 bugs fixed)
-- [x] Flywheel audit and blocker fixes
-- [x] README.md overhaul (badges, demo GIF, example output, emotional hook)
+- [x] Contribution workflow audit and fixes
+- [x] README.md overhaul (badges, demo GIF, example output)
 - [x] METHODOLOGY.md (evidence basis, tiered protocol, limitations)
 - [x] CONTRIBUTING.md (known bugs YAML guide, TDD workflow)
 - [x] LICENSE (MIT)
@@ -61,7 +61,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 - [x] Blog post outline
 - [x] E2E install validation (clean venv, all paths tested)
 
-**Ship criteria:** Repository is polished, flywheel-optimized, and ready for public visitors. **MET.**
+**Ship criteria:** Repository is polished and ready for contributors. **MET.**
 
 ---
 
@@ -73,9 +73,9 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 - [x] Git tag `v0.1.0`
 - [x] GitHub release with release notes
 - [x] Pre-publish security/attribution audit
-- [x] README and presentation polish (flywheel + evangelist audit)
+- [x] README and presentation polish
 - [ ] Publish to PyPI (`uv build` + `uv publish`)
-- [ ] Replace static badges with live CI/PyPI badges
+- [x] Replace static badges with live CI/PyPI badges
 - [ ] Blog post (outline at `_private/plans/blog-post-outline.md`)
 - [ ] Community outreach (HN, r/LocalLLaMA, MLX Discussions)
 
@@ -115,6 +115,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Multi-hardware data collection | Post v0.1 launch |
 | mlx-lm integration as subcommand | Post v0.1 launch |
 | Homebrew tap | Nice-to-have, not needed for v0.1 |
+| Research artifact review & cleanup | Raw deep-research reports need digesting into structured, actionable docs; part of broader content processing pass |
 
 ---
 
@@ -129,9 +130,9 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Docs audit | Phase 1.5 | 2026-03-02 | Scrubbed 11 files, no AI attribution |
 | Pre-launch bug audit | Phase 1.5 | 2026-03-02 | 15 bugs fixed, 102 tests |
 | Launch packaging | Phase 1.5 | 2026-03-03 | README, CONTRIBUTING, METHODOLOGY, CI, issue templates, demo GIF |
-| Flywheel optimization | Phase 1.5 | 2026-03-03 | Two audits, badges, emotional hook, example output |
+| Documentation polish | Phase 1.5 | 2026-03-03 | Badges, example output, README improvements |
 | GitHub publish | Phase 1.5b | 2026-03-03 | Repo live, CI green, v0.1.0 tagged and released |
-| Presentation polish | Phase 1.5b | 2026-03-03 | Flywheel + evangelist audits, description/tags/README rewrite |
+| Presentation polish | Phase 1.5b | 2026-03-03 | Description, tags, README rewrite |
 
 ---
 
@@ -143,8 +144,8 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | 2026-02-25 | Python CLI (not web app) | Target audience is ML practitioners in terminals |
 | 2026-02-25 | safetensors header reading for dtype check | Works without MLX installed; fastest path for Tier 0 |
 | 2026-02-25 | Known bugs as YAML database | Community-contributable; tool gets smarter without code changes |
-| 2026-02-28 | v0.1 = Tier 0 + Tier 1 + full packaging | Contribution-ready first impression for flywheel |
-| 2026-02-28 | GitHub + PyPI first, blog post fast follow | Get installable, then drive traffic |
+| 2026-02-28 | v0.1 = Tier 0 + Tier 1 + full packaging | Contribution-ready first impression |
+| 2026-02-28 | GitHub + PyPI first, blog post fast follow | Get installable first, then announce |
 | 2026-02-28 | Reference divergence as optional dep | Core differentiator; graceful skip if not installed |
 | 2026-02-28 | Shared model loading in run_tier1() | Avoids 3x multi-GB load |
 | 2026-03-03 | Publish to PyPI — YES | Both audit agents agree; README promises it; wheel builds clean |

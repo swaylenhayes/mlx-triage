@@ -1,9 +1,10 @@
 # mlx-triage
 
-![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
+[![PyPI version](https://img.shields.io/pypi/v/mlx-triage.svg)](https://pypi.org/project/mlx-triage/)
+[![CI](https://github.com/swaylenhayes/mlx-triage/actions/workflows/ci.yml/badge.svg)](https://github.com/swaylenhayes/mlx-triage/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/pypi/pyversions/mlx-triage.svg)](https://pypi.org/project/mlx-triage/)
+[![License: MIT](https://img.shields.io/github/license/swaylenhayes/mlx-triage.svg)](https://github.com/swaylenhayes/mlx-triage/blob/main/LICENSE)
 ![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-black.svg)
-![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests: 102 passing](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
 ![Validated: 13 models across 5 families](https://img.shields.io/badge/validated-13%20models%20across%205%20families-orange.svg)
 
 **Your MLX model is producing garbage. Is it the weights? A known MLX bug? Your quantization settings?**
