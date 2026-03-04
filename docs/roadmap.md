@@ -1,6 +1,6 @@
 # Roadmap — mlx-triage
 
-_Last updated: 2026-03-03_
+_Last updated: 2026-03-03 (session 2)_
 
 > Items organized by priority tier (P0-P3). P0 = must have / blocking. P3 = backlog / future.
 
@@ -74,7 +74,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 - [x] GitHub release with release notes
 - [x] Pre-publish security/attribution audit
 - [x] README and presentation polish
-- [ ] Publish to PyPI (`uv build` + `uv publish`)
+- [x] Publish to PyPI (v0.1.0 + v0.1.1 live)
 - [x] Replace static badges with live CI/PyPI badges
 - [ ] Blog post (outline at `_private/plans/blog-post-outline.md`)
 - [ ] Community outreach (HN, r/LocalLLaMA, MLX Discussions)
