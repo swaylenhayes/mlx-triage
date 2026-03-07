@@ -118,6 +118,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | mlx-lm integration as subcommand | Post v0.1 launch |
 | Homebrew tap | Nice-to-have, not needed for v0.1 |
 | Research artifact review & cleanup | Raw deep-research reports need digesting into structured, actionable docs; part of broader content processing pass |
+| "What now?" — guided remediation after diagnosis | When mlx-triage surfaces a problem (bad quant, missing template, known bug), what should the user actually *do*? Explore: actionable next-step guidance, fix-it commands, alternative model suggestions, links to upstream issues. Could be a `--explain` flag, a remediation section in reports, or a `mlx-triage fix` subcommand. Speculative — needs design session. |
 
 ---
 
@@ -135,6 +136,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Documentation polish | Phase 1.5 | 2026-03-03 | Badges, example output, README improvements |
 | GitHub publish | Phase 1.5b | 2026-03-03 | Repo live, CI green, v0.1.0 tagged and released |
 | Presentation polish | Phase 1.5b | 2026-03-03 | Description, tags, README rewrite |
+
 
 ---
 

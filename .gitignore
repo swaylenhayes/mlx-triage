@@ -30,5 +30,5 @@ CLAUDE.md
 .sediment/
 scripts/
 
-# MLX knowledge corpus (local reference, auto-synced)
-_docs/mlx-knowledge/
+# Internal docs (project state, knowledge corpus, migration prompts)
+_docs/
