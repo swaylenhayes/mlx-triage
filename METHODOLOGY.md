@@ -10,10 +10,10 @@ When an MLX-served model produces poor output, practitioners face a diagnostic a
 
 The diagnostic protocol was designed from analysis of:
 
-- **Infrastructure defect taxonomy** — categorization of MLX bugs by type, severity, and affected components ([analysis](docs/evidence/c1-infrastructure-defects-analysis.md), [taxonomy](docs/evidence/c1-infrastructure-defects-taxonomy.md))
-- **First-party experiments** — controlled experiments isolating infrastructure vs. model quality effects ([analysis](docs/evidence/first-party-experiment-analysis.md))
-- **Cross-model synthesis** — patterns observed across multiple model families and quantization levels ([C1 synthesis](docs/context/c1-cross-model-synthesis.md), [C2 synthesis](docs/context/c2-cross-model-synthesis.md))
-- **Systematic review** — structured review of MLX infrastructure constraints and model quality factors ([infrastructure constraints](docs/research/c2-mlx-infrastructure-constraints.md), [model quality](docs/research/c2-model-quality-dominance.md))
+- **Infrastructure defect taxonomy** — categorization of MLX bugs by type, severity, and affected components
+- **First-party experiments** — controlled experiments isolating infrastructure vs. model quality effects
+- **Cross-model synthesis** — patterns observed across multiple model families and quantization levels
+- **Systematic review** — structured review of MLX infrastructure constraints and model quality factors
 
 ## Tiered Protocol
 
