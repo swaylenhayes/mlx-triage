@@ -1,3 +1,9 @@
+---
+title: roadmap
+type: note
+permalink: mlxtriage/docs/roadmap
+---
+
 # Roadmap — mlx-triage
 
 _Last updated: 2026-03-03 (session 2)_
@@ -77,6 +83,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 - [x] Publish to PyPI (v0.1.0 + v0.1.1 live)
 - [x] Replace static badges with live CI/PyPI badges
 - [x] Expanded model validation (13 → 32 models, 10 families, 7 quant formats)
+- [x] Check 0.5: VLM architecture detection — detect `vision_config` / multimodal architectures in config.json and return a clean FAIL with guidance instead of crashing at model load
 - [ ] Blog post (outline at `_private/plans/blog-post-outline.md`)
 - [ ] Write-up: "Silent chat_template stripping in MLX Community conversions" — several popular model families (Ministral, GLM, Nemotron, Qwen3.5-MoE) ship without chat_template after conversion, causing silent prompt format fallback
 - [ ] Community outreach (HN, r/LocalLLaMA, MLX Discussions)
@@ -119,6 +126,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Homebrew tap | Nice-to-have, not needed for v0.1 |
 | Research artifact review & cleanup | Raw deep-research reports need digesting into structured, actionable docs; part of broader content processing pass |
 | "What now?" — guided remediation after diagnosis | When mlx-triage surfaces a problem (bad quant, missing template, known bug), what should the user actually *do*? Explore: actionable next-step guidance, fix-it commands, alternative model suggestions, links to upstream issues. Could be a `--explain` flag, a remediation section in reports, or a `mlx-triage fix` subcommand. Speculative — needs design session. |
+| VLM diagnostic support | Investigate whether mlx-triage can extend to Vision-Language Models (VLMs). Qwen3.5-4B is a VLM with `vision_tower` weights that `mlx-lm` can't load — Tier 1 checks fail entirely. Questions to scope: Can `mlx-vlm` be used as an alternative loader? What VLM-specific failure modes exist (vision encoder corruption, cross-attention misalignment, image preprocessing config)? Would VLM diagnostics need new check types (image input tests, multimodal determinism) or just a different model loader? Depends on Check 0.5 (VLM detection) shipping first. |
 
 ---
 

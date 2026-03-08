@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from mlx_triage.models import TierReport
+from mlx_triage.tier0.architecture_check import check_architecture
 from mlx_triage.tier0.dtype_check import check_dtype_compatibility
 from mlx_triage.tier0.tokenizer_check import check_tokenizer_config
 from mlx_triage.tier0.version_check import check_mlx_version
@@ -16,5 +17,6 @@ def run_tier0(model_path: str) -> TierReport:
         check_tokenizer_config(model_path),
         check_weight_integrity(model_path),
         check_mlx_version(model_path),
+        check_architecture(model_path),
     ]
     return TierReport.create(tier=0, model=model_path, checks=checks)
