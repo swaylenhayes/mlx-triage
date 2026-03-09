@@ -1,9 +1,3 @@
----
-title: validation-results
-type: note
-permalink: mlxtriage/docs/validation-results
----
-
 # mlx-triage Validation Results
 
 > **Last updated:** 2026-03-08
