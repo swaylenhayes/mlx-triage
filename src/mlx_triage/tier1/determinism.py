@@ -13,13 +13,8 @@ from __future__ import annotations
 
 from mlx_triage.models import CheckStatus, DiagnosticResult
 from mlx_triage.prompts.standard_suite import DIAGNOSTIC_PROMPTS
+from mlx_triage.utils.backends import ModelBackend
 from mlx_triage.utils.comparison import multi_run_consistency
-from mlx_triage.utils.mlx_utils import (
-    GenerationResult,
-    check_mlx_available,
-    generate_text,
-    load_model,
-)
 
 # Thresholds from Token-DiFR evidence
 MINOR_DIVERGENCE_THRESHOLD = 0.02  # < 2% = expected floating-point variance
@@ -33,6 +28,7 @@ def check_determinism(
     seed: int = 42,
     model: object | None = None,
     tokenizer: object | None = None,
+    backend: ModelBackend | None = None,
 ) -> DiagnosticResult:
     """Run determinism check: same prompt N times at temp=0, compare outputs.
 
@@ -43,8 +39,14 @@ def check_determinism(
         seed: Random seed for reproducibility.
         model: Pre-loaded MLX model (optional, avoids redundant loading).
         tokenizer: Pre-loaded tokenizer (optional, avoids redundant loading).
+        backend: Model backend for inference. Defaults to MLXLMBackend.
     """
-    if not check_mlx_available():
+    if backend is None:
+        from mlx_triage.utils.mlx_utils import MLXLMBackend
+
+        backend = MLXLMBackend()
+
+    if not backend.is_available():
         return DiagnosticResult(
             check_id="1.1",
             name="Determinism",
@@ -54,7 +56,7 @@ def check_determinism(
         )
 
     if model is None or tokenizer is None:
-        model, tokenizer = load_model(model_path)
+        model, tokenizer = backend.load(model_path)
     prompts = DIAGNOSTIC_PROMPTS[:n_prompts]
 
     all_consistencies: list[dict] = []
@@ -66,7 +68,7 @@ def check_determinism(
 
         runs: list[list[int]] = []
         for _ in range(n_runs):
-            result = generate_text(
+            result = backend.generate_text(
                 model, tokenizer, prompt,
                 max_tokens=max_tokens, temp=0.0, seed=seed,
             )

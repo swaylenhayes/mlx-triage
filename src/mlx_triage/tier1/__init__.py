@@ -6,16 +6,19 @@ from mlx_triage.models import CheckStatus, DiagnosticResult, TierReport
 from mlx_triage.tier1.determinism import check_determinism
 from mlx_triage.tier1.quantization_quality import check_quantization_quality
 from mlx_triage.tier1.reference_divergence import check_reference_divergence
-from mlx_triage.utils.mlx_utils import check_mlx_available, load_model
+from mlx_triage.utils.backends import ModelBackend, get_backend
 
 
-def run_tier1(model_path: str) -> TierReport:
+def run_tier1(model_path: str, backend: ModelBackend | None = None) -> TierReport:
     """Run all Tier 1 checks.
 
-    If MLX is not available, all checks are skipped.
+    If the backend's dependencies are not available, all checks are skipped.
     The model is loaded once and shared across all checks.
     """
-    if not check_mlx_available():
+    if backend is None:
+        backend = get_backend(model_path)
+
+    if not backend.is_available():
         return TierReport.create(
             tier=1,
             model=model_path,
@@ -44,12 +47,12 @@ def run_tier1(model_path: str) -> TierReport:
             ],
         )
 
-    model, tokenizer = load_model(model_path)
+    model, tokenizer = backend.load(model_path)
 
     checks = [
-        check_determinism(model_path, model=model, tokenizer=tokenizer),
-        check_reference_divergence(model_path, model=model, tokenizer=tokenizer),
-        check_quantization_quality(model_path, model=model, tokenizer=tokenizer),
+        check_determinism(model_path, model=model, tokenizer=tokenizer, backend=backend),
+        check_reference_divergence(model_path, model=model, tokenizer=tokenizer, backend=backend),
+        check_quantization_quality(model_path, model=model, tokenizer=tokenizer, backend=backend),
     ]
 
     return TierReport.create(tier=1, model=model_path, checks=checks)

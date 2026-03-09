@@ -69,7 +69,8 @@ def check_architecture(model_path: str) -> DiagnosticResult:
                 f"mlx-lm text-only loader cannot load vision tower weights."
             ),
             remediation=(
-                "Use mlx-vlm for VLM inference, or use a text-only variant of this model."
+                "VLM diagnostics require mlx-vlm. "
+                "Install VLM support: uv sync --extra vlm"
             ),
             metadata={
                 "is_vlm": True,

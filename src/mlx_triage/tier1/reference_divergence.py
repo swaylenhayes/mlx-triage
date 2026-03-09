@@ -10,19 +10,23 @@ Requires optional dependency: mlx-triage[reference] (transformers, torch)
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from mlx_triage.models import CheckStatus, DiagnosticResult
 from mlx_triage.prompts.standard_suite import DIAGNOSTIC_PROMPTS
 from mlx_triage.utils.comparison import divergence_point, token_agreement_rate
-from mlx_triage.utils.mlx_utils import (
-    check_mlx_available,
-    generate_text,
-    load_model,
-)
+
+if TYPE_CHECKING:
+    from mlx_triage.utils.backends import ModelBackend
 
 # Thresholds for cross-backend agreement
 HIGH_AGREEMENT = 0.95  # >95% -> PASS
 MODERATE_AGREEMENT = 0.85  # >85% -> INFO (expected variance)
 LOW_AGREEMENT = 0.70  # >70% -> WARNING
+
+
+class ReferenceBackendError(RuntimeError):
+    """Raised when the reference backend cannot run for the selected model."""
 
 
 def _check_reference_available() -> bool:
@@ -52,12 +56,38 @@ def _generate_reference(
         List of token IDs from reference generation.
     """
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+
+    ref_config = AutoConfig.from_pretrained(model_path)
+    quant_cfg: Any = getattr(ref_config, "quantization_config", None)
+    if isinstance(quant_cfg, dict) and "quant_method" not in quant_cfg:
+        raise ReferenceBackendError(
+            "Unsupported quantized checkpoint for HF reference loading: "
+            "quantization_config is missing quant_method."
+        )
+    if quant_cfg is not None and not isinstance(quant_cfg, dict):
+        if not hasattr(quant_cfg, "quant_method"):
+            raise ReferenceBackendError(
+                "Unsupported quantized checkpoint for HF reference loading: "
+                "quantization_config is missing quant_method."
+            )
 
     ref_tokenizer = AutoTokenizer.from_pretrained(model_path)
-    ref_model = AutoModelForCausalLM.from_pretrained(
-        model_path, torch_dtype=torch.float32, device_map="cpu"
-    )
+    try:
+        ref_model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            config=ref_config,
+            dtype=torch.float32,
+            device_map="cpu",
+        )
+    except ValueError as exc:
+        message = str(exc)
+        if "quantization config" in message and "quant_method" in message:
+            raise ReferenceBackendError(
+                "Unsupported quantized checkpoint for HF reference loading: "
+                "quantization_config is missing quant_method."
+            ) from exc
+        raise
 
     inputs = ref_tokenizer(prompt, return_tensors="pt")
     with torch.no_grad():
@@ -80,6 +110,7 @@ def check_reference_divergence(
     seed: int = 42,
     model: object | None = None,
     tokenizer: object | None = None,
+    backend: ModelBackend | None = None,
 ) -> DiagnosticResult:
     """Compare MLX output against Transformers reference.
 
@@ -89,8 +120,14 @@ def check_reference_divergence(
         seed: Random seed for MLX generation.
         model: Pre-loaded MLX model (optional, avoids redundant loading).
         tokenizer: Pre-loaded tokenizer (optional, avoids redundant loading).
+        backend: Model backend for inference (defaults to MLXLMBackend).
     """
-    if not check_mlx_available():
+    if backend is None:
+        from mlx_triage.utils.mlx_utils import MLXLMBackend
+
+        backend = MLXLMBackend()
+
+    if not backend.is_available():
         return DiagnosticResult(
             check_id="1.2",
             name="Reference Divergence",
@@ -109,7 +146,7 @@ def check_reference_divergence(
         )
 
     if model is None or tokenizer is None:
-        model, tokenizer = load_model(model_path)
+        model, tokenizer = backend.load(model_path)
     prompts = [p for p in DIAGNOSTIC_PROMPTS[:n_prompts] if isinstance(p["prompt"], str)]
 
     comparisons: list[dict] = []
@@ -119,7 +156,7 @@ def check_reference_divergence(
         max_tokens = prompt_spec["max_tokens"]
 
         # MLX generation
-        mlx_result = generate_text(
+        mlx_result = backend.generate_text(
             model,
             tokenizer,
             prompt_text,
@@ -129,7 +166,34 @@ def check_reference_divergence(
         )
 
         # Reference generation
-        ref_tokens = _generate_reference(model_path, prompt_text, max_tokens=max_tokens)
+        try:
+            ref_tokens = _generate_reference(
+                model_path, prompt_text, max_tokens=max_tokens
+            )
+        except ReferenceBackendError as exc:
+            return DiagnosticResult(
+                check_id="1.2",
+                name="Reference Divergence",
+                status=CheckStatus.SKIP,
+                detail=f"Reference backend unavailable for this model: {exc}",
+                remediation=(
+                    "Use a HF-reference-loadable checkpoint for periodic T1.2 "
+                    "or provide a model-family reference adapter."
+                ),
+                metadata={"error_type": type(exc).__name__},
+            )
+        except Exception as exc:  # pragma: no cover - safety net for runtime-only errors
+            return DiagnosticResult(
+                check_id="1.2",
+                name="Reference Divergence",
+                status=CheckStatus.SKIP,
+                detail=f"Reference generation failed: {type(exc).__name__}: {exc}",
+                remediation=(
+                    "Verify transformers/torch reference runtime for this model "
+                    "or run with an alternate reference checkpoint."
+                ),
+                metadata={"error_type": type(exc).__name__},
+            )
 
         agreement = token_agreement_rate(mlx_result.tokens, ref_tokens)
         div_point = divergence_point(mlx_result.tokens, ref_tokens)

@@ -1,9 +1,16 @@
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
 from mlx_triage.cli import cli
+
+
+def _make_unavailable_backend():
+    """Create a mock backend that reports MLX as unavailable."""
+    backend = MagicMock()
+    backend.is_available.return_value = False
+    return backend
 
 
 def test_check_tier0_terminal(good_model):
@@ -47,7 +54,7 @@ def test_check_tier1_skips_when_mlx_missing(good_model):
     """--tier 1 should still work when MLX is not installed (checks SKIP)."""
     runner = CliRunner()
     with patch("mlx_triage.tier0.version_check._get_mlx_version", return_value="0.25.1"):
-        with patch("mlx_triage.tier1.check_mlx_available", return_value=False):
+        with patch("mlx_triage.tier1.get_backend", return_value=_make_unavailable_backend()):
             result = runner.invoke(cli, ["check", str(good_model), "--tier", "1"])
     assert result.exit_code == 0
 
@@ -56,7 +63,7 @@ def test_check_tier1_json_output(good_model):
     """--tier 1 --format json should produce valid JSON with both tiers."""
     runner = CliRunner()
     with patch("mlx_triage.tier0.version_check._get_mlx_version", return_value="0.25.1"):
-        with patch("mlx_triage.tier1.check_mlx_available", return_value=False):
+        with patch("mlx_triage.tier1.get_backend", return_value=_make_unavailable_backend()):
             result = runner.invoke(
                 cli, ["check", str(good_model), "--tier", "1", "--format", "json"]
             )

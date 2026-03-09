@@ -138,3 +138,56 @@ def generate_text(
         logprobs=logprobs if logprobs else [],
         generation_tps=tps,
     )
+
+
+class MLXLMBackend:
+    """Text-only backend using mlx-lm.
+
+    Wraps existing module-level functions to satisfy the ModelBackend protocol.
+    """
+
+    def is_available(self) -> bool:
+        """Check if mlx and mlx-lm are installed."""
+        return check_mlx_available()
+
+    def load(self, model_path: str) -> tuple:
+        """Load model and tokenizer via mlx-lm."""
+        return load_model(model_path)
+
+    def generate_text(
+        self,
+        model,
+        tokenizer,
+        prompt: str | list[dict],
+        **kwargs,
+    ) -> GenerationResult:
+        """Generate text via mlx-lm stream_generate."""
+        return generate_text(model, tokenizer, prompt, **kwargs)
+
+    def compute_perplexity(self, model, tokenizer, text: str) -> float:
+        """Compute perplexity using a raw forward pass.
+
+        Tokenizes the text, feeds it through the model, and returns
+        exp(avg_cross_entropy_loss).
+        """
+        import math
+
+        import mlx.core as mx
+        import mlx.nn as nn
+
+        tokens = tokenizer.encode(text)
+        if len(tokens) < 2:
+            raise ValueError("Evaluation text too short for perplexity computation")
+
+        token_array = mx.array([tokens])
+        logits = model(token_array)
+
+        shift_logits = logits[:, :-1, :]
+        shift_labels = token_array[:, 1:]
+
+        loss = nn.losses.cross_entropy(
+            shift_logits.reshape(-1, shift_logits.shape[-1]),
+            shift_labels.reshape(-1),
+        )
+        avg_loss = mx.mean(loss).item()
+        return math.exp(avg_loss)
