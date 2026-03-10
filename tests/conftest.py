@@ -89,6 +89,43 @@ def quantized_model(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def thinking_model(tmp_path: Path) -> Path:
+    """Model directory with thinking tokens in tokenizer vocabulary."""
+    d = tmp_path / "thinking-model"
+    d.mkdir()
+    (d / "config.json").write_text(
+        json.dumps(
+            {
+                "architectures": ["Qwen3ForCausalLM"],
+                "model_type": "qwen3",
+                "torch_dtype": "bfloat16",
+            }
+        )
+    )
+    (d / "tokenizer_config.json").write_text(
+        json.dumps(
+            {
+                "eos_token": "<|endoftext|>",
+                "bos_token": "<|startoftext|>",
+                "chat_template": "{% for m in messages %}{{ m.content }}{% endfor %}",
+                "added_tokens_decoder": {
+                    "151648": {
+                        "content": "<think>",
+                        "special": True,
+                    },
+                    "151649": {
+                        "content": "</think>",
+                        "special": True,
+                    },
+                },
+            }
+        )
+    )
+    create_safetensors(d / "model.safetensors", dtype="BF16")
+    return d
+
+
+@pytest.fixture
 def vlm_model(tmp_path: Path) -> Path:
     """Model directory with VLM architecture (vision_config present)."""
     d = tmp_path / "vlm-model"

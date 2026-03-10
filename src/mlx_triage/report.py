@@ -11,6 +11,7 @@ from rich.table import Table
 from rich.text import Text
 
 from mlx_triage.models import CheckStatus, TierReport
+from mlx_triage.traits import collect_traits
 
 # Status → color mapping for Rich output
 STATUS_COLORS = {
@@ -45,6 +46,8 @@ def render_json(report: TierReport) -> str:
         "verdict": report.verdict,
         "should_continue": report.should_continue,
     }
+    if report.tier == 0:
+        output["traits"] = collect_traits(report.checks)
     return json.dumps(output, indent=2)
 
 
