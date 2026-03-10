@@ -61,3 +61,21 @@ def test_llama3_missing_eot_id_warning(tmp_path):
     result = check_tokenizer_config(str(d))
     # Should at least INFO about Llama 3 dual stop token pattern
     assert result.status in (CheckStatus.WARNING, CheckStatus.INFO, CheckStatus.PASS)
+
+
+def test_has_chat_template_metadata_true(good_model):
+    """Chat template presence should be in metadata."""
+    result = check_tokenizer_config(str(good_model))
+    assert result.metadata["has_chat_template"] is True
+
+
+def test_has_chat_template_metadata_false(tmp_path):
+    """Missing chat template should be in metadata."""
+    d = tmp_path / "no-template"
+    d.mkdir()
+    (d / "config.json").write_text('{"model_type": "llama"}')
+    (d / "tokenizer_config.json").write_text(
+        '{"eos_token": "</s>", "bos_token": "<s>"}'
+    )
+    result = check_tokenizer_config(str(d))
+    assert result.metadata["has_chat_template"] is False

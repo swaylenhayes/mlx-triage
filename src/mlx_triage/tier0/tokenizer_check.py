@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from mlx_triage.models import CheckStatus, DiagnosticResult
 
@@ -55,6 +56,7 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
 
     # Check chat template
     chat_template = tok_config.get("chat_template")
+    metadata: dict[str, Any] = {"has_chat_template": bool(chat_template)}
     if not chat_template:
         issues.append("No chat_template defined — runtime will fall back to ChatML or default template.")
         remediations.append("Add a chat_template to tokenizer_config.json matching the model's training format.")
@@ -85,6 +87,7 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
             name="Tokenizer Config",
             status=CheckStatus.PASS,
             detail=f"EOS token: {eos_token}. Chat template: {'present' if chat_template else 'missing'}.",
+            metadata=metadata,
         )
 
     # Determine severity
@@ -97,4 +100,5 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
         status=status,
         detail=" ".join(issues),
         remediation=" ".join(remediations) if remediations else None,
+        metadata=metadata,
     )
