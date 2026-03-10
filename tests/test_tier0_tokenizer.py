@@ -79,3 +79,35 @@ def test_has_chat_template_metadata_false(tmp_path):
     )
     result = check_tokenizer_config(str(d))
     assert result.metadata["has_chat_template"] is False
+
+
+def test_thinking_tokens_detected(thinking_model):
+    """Models with <think>/<​/think> in added_tokens should report has_thinking_tokens=True."""
+    result = check_tokenizer_config(str(thinking_model))
+    assert result.metadata["has_thinking_tokens"] is True
+
+
+def test_no_thinking_tokens(good_model):
+    """Standard models without thinking tokens should report has_thinking_tokens=False."""
+    result = check_tokenizer_config(str(good_model))
+    assert result.metadata["has_thinking_tokens"] is False
+
+
+def test_thinking_tokens_partial_no_match(tmp_path):
+    """Only <think> without </think> should NOT count as thinking-capable."""
+    d = tmp_path / "partial-think"
+    d.mkdir()
+    (d / "config.json").write_text('{"model_type": "custom"}')
+    (d / "tokenizer_config.json").write_text(
+        json.dumps(
+            {
+                "eos_token": "</s>",
+                "chat_template": "...",
+                "added_tokens_decoder": {
+                    "100": {"content": "<think>", "special": True},
+                },
+            }
+        )
+    )
+    result = check_tokenizer_config(str(d))
+    assert result.metadata["has_thinking_tokens"] is False
