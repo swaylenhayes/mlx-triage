@@ -43,7 +43,10 @@ def test_render_json_roundtrip():
     report = _make_report()
     output = render_json(report)
     parsed = json.loads(output)
-    assert parsed["checks"]["0.2"]["remediation"] == "Add chat_template to tokenizer_config.json."
+    assert (
+        parsed["checks"]["0.2"]["remediation"]
+        == "Add chat_template to tokenizer_config.json."
+    )
 
 
 def test_render_terminal_contains_key_info():

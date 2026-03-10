@@ -10,11 +10,27 @@ from __future__ import annotations
 from mlx_triage.models import DiagnosticResult
 
 # Model families known to never support thinking/reasoning tokens.
-_NON_REASONING_FAMILIES = frozenset({
-    "llama", "mistral", "mistral3", "gemma", "gemma3", "gemma3_text",
-    "phi", "phi3", "phi4", "starcoder", "gpt_neox", "mpt", "falcon",
-    "nanbeige", "glm4_moe_lite", "nemotron_h", "lfm2",
-})
+_NON_REASONING_FAMILIES = frozenset(
+    {
+        "llama",
+        "mistral",
+        "mistral3",
+        "gemma",
+        "gemma3",
+        "gemma3_text",
+        "phi",
+        "phi3",
+        "phi4",
+        "starcoder",
+        "gpt_neox",
+        "mpt",
+        "falcon",
+        "nanbeige",
+        "glm4_moe_lite",
+        "nemotron_h",
+        "lfm2",
+    }
+)
 
 
 def collect_traits(checks: list[DiagnosticResult]) -> dict:

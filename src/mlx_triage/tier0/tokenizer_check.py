@@ -73,8 +73,12 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
     metadata: dict[str, Any] = {"has_chat_template": bool(chat_template)}
     metadata["has_thinking_tokens"] = _has_thinking_tokens(tok_config)
     if not chat_template:
-        issues.append("No chat_template defined — runtime will fall back to ChatML or default template.")
-        remediations.append("Add a chat_template to tokenizer_config.json matching the model's training format.")
+        issues.append(
+            "No chat_template defined — runtime will fall back to ChatML or default template."
+        )
+        remediations.append(
+            "Add a chat_template to tokenizer_config.json matching the model's training format."
+        )
 
     # Check for generation_config.json stop tokens
     gen_config_path = path / "generation_config.json"
@@ -89,12 +93,16 @@ def check_tokenizer_config(model_path: str) -> DiagnosticResult:
         eos_token_id = gen_config.get("eos_token_id")
         if isinstance(eos_token_id, int):
             # Single stop token configured — check if model might need multiple
-            if isinstance(eos_token, str) and any(t in eos_token for t in LLAMA3_STOP_TOKENS):
+            if isinstance(eos_token, str) and any(
+                t in eos_token for t in LLAMA3_STOP_TOKENS
+            ):
                 issues.append(
                     f"Llama 3-style EOS token detected ({eos_token}) but generation_config "
                     f"has single eos_token_id. Model may need multiple stop tokens."
                 )
-                remediations.append("Check if model needs both <|end_of_text|> and <|eot_id|> as stop tokens.")
+                remediations.append(
+                    "Check if model needs both <|end_of_text|> and <|eot_id|> as stop tokens."
+                )
 
     if not issues:
         return DiagnosticResult(
