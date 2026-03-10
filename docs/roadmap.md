@@ -1,6 +1,12 @@
+---
+title: roadmap
+type: note
+permalink: mlxtriage/docs/roadmap
+---
+
 # Roadmap — mlx-triage
 
-_Last updated: 2026-03-09_
+_Last updated: 2026-03-10_
 
 > Items organized by priority tier (P0-P3). P0 = must have / blocking. P3 = backlog / future.
 
@@ -121,6 +127,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 | Research artifact review & cleanup | Raw deep-research reports need digesting into structured, actionable docs; part of broader content processing pass |
 | "What now?" — guided remediation after diagnosis | When mlx-triage surfaces a problem (bad quant, missing template, known bug), what should the user actually *do*? Explore: actionable next-step guidance, fix-it commands, alternative model suggestions, links to upstream issues. Could be a `--explain` flag, a remediation section in reports, or a `mlx-triage fix` subcommand. Speculative — needs scoping. |
 | VLM diagnostic support | Investigate whether mlx-triage can extend to Vision-Language Models (VLMs). Qwen3.5-4B is a VLM with `vision_tower` weights that `mlx-lm` can't load — Tier 1 checks fail entirely. Questions to scope: Can `mlx-vlm` be used as an alternative loader? What VLM-specific failure modes exist (vision encoder corruption, cross-attention misalignment, image preprocessing config)? Would VLM diagnostics need new check types (image input tests, multimodal determinism) or just a different model loader? Depends on Check 0.5 (VLM detection) shipping first. |
+| Model traits JSON field | Aggregate existing Tier 0 metadata (`has_chat_template`, `architecture_type`, `is_vlm`, `known_issues`) into a structured `traits` object in JSON output. Driven by SemaChat capability contract integration (pending formal thread). Low effort — reshape of existing data, not new logic. |
 
 ---
 
@@ -146,6 +153,7 @@ A practitioner-facing diagnostic CLI that tells you whether your MLX model quali
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-10 | Model traits = reshape, not new direction | SemaChat needs model capability data; mlx-triage already produces 4 of 7 traits as check metadata side effects. Design from consumption (which controls need model input?), not abstraction. |
 | 2026-02-25 | Tiered diagnostic protocol (0-3) | Most issues resolve at Tier 0/1; expensive diagnostics only when needed |
 | 2026-02-25 | Python CLI (not web app) | Target audience is ML practitioners in terminals |
 | 2026-02-25 | safetensors header reading for dtype check | Works without MLX installed; fastest path for Tier 0 |
