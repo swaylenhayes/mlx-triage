@@ -45,6 +45,10 @@ def render_json(report: TierReport) -> str:
         "checks": checks_dict,
         "verdict": report.verdict,
         "should_continue": report.should_continue,
+        "claim_level": report.claim_level,
+        "checks_executed": report.checks_executed,
+        "checks_skipped": report.checks_skipped,
+        "skipped_check_ids": report.skipped_check_ids,
     }
     if report.tier == 0:
         output["traits"] = collect_traits(report.checks)

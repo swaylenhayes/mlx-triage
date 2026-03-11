@@ -75,6 +75,22 @@ class TierReport:
     def should_continue(self) -> bool:
         return self.worst_status not in (CheckStatus.FAIL, CheckStatus.CRITICAL)
 
+    @property
+    def skipped_check_ids(self) -> list[str]:
+        return [check.check_id for check in self.checks if check.status == CheckStatus.SKIP]
+
+    @property
+    def checks_skipped(self) -> int:
+        return len(self.skipped_check_ids)
+
+    @property
+    def checks_executed(self) -> int:
+        return len(self.checks) - self.checks_skipped
+
+    @property
+    def claim_level(self) -> str:
+        return "preflight-only" if self.checks_skipped > 0 else "runtime-qualified"
+
     @classmethod
     def create(cls, tier: int, model: str, checks: list[DiagnosticResult]) -> TierReport:
         return cls(

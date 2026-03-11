@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: mlxtriage/readme
+---
+
 # mlx-triage
 
 [![PyPI version](https://img.shields.io/pypi/v/mlx-triage.svg)](https://pypi.org/project/mlx-triage/)
@@ -71,11 +77,25 @@ mlx-triage check /path/to/model --tier 1
 # JSON output
 mlx-triage check /path/to/model --format json
 
+# Require full execution (fail if any check is skipped)
+mlx-triage check /path/to/model --tier 1 --format json --strict
+
 # Save report to file
 mlx-triage check /path/to/model --tier 1 --output report.json
 ```
 
 Tier 0 runs in under 30 seconds on any model. Tier 1 requires MLX and takes 5-15 minutes depending on model size.
+
+## Reliability Claims in JSON Output
+
+Each JSON report now includes:
+
+- `claim_level`: `runtime-qualified` when all checks executed, `preflight-only` when any check was skipped
+- `checks_executed`: Number of checks that ran
+- `checks_skipped`: Number of checks skipped
+- `skipped_check_ids`: IDs of skipped checks
+
+Use `--strict` in CI or external reporting workflows to enforce full execution. In strict mode, mlx-triage exits with a non-zero status if any check is skipped.
 
 ## How It Works
 

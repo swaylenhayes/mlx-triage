@@ -33,7 +33,13 @@ def cli() -> None:
     default="terminal",
     help="Output format.",
 )
-def check(model_path: str, tier: int, output: str | None, fmt: str) -> None:
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Exit non-zero if any check is skipped.",
+)
+def check(model_path: str, tier: int, output: str | None, fmt: str, strict: bool) -> None:
     """Run diagnostic checks against an MLX model."""
     import json as json_mod
 
@@ -77,4 +83,10 @@ def check(model_path: str, tier: int, output: str | None, fmt: str) -> None:
         for report in reports:
             click.echo(render_terminal(report))
 
+    if strict and any(report.checks_skipped > 0 for report in reports):
+        click.echo(
+            "Strict mode failed: one or more checks were skipped.",
+            err=True,
+        )
+        raise click.exceptions.Exit(1)
 

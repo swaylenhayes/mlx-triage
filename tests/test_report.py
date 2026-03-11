@@ -49,6 +49,46 @@ def test_render_json_roundtrip():
     )
 
 
+def test_render_json_claim_level_runtime_qualified():
+    report = _make_report()
+    output = render_json(report)
+    parsed = json.loads(output)
+
+    assert parsed["claim_level"] == "runtime-qualified"
+    assert parsed["checks_executed"] == 2
+    assert parsed["checks_skipped"] == 0
+    assert parsed["skipped_check_ids"] == []
+
+
+def test_render_json_claim_level_preflight_only_when_skipped():
+    report = TierReport(
+        tier=1,
+        model="/path/to/model",
+        timestamp="2026-03-11T01:00:00Z",
+        checks=[
+            DiagnosticResult(
+                check_id="1.1",
+                name="Determinism",
+                status=CheckStatus.SKIP,
+                detail="MLX not available.",
+            ),
+            DiagnosticResult(
+                check_id="1.2",
+                name="Reference Divergence",
+                status=CheckStatus.PASS,
+                detail="OK",
+            ),
+        ],
+    )
+    output = render_json(report)
+    parsed = json.loads(output)
+
+    assert parsed["claim_level"] == "preflight-only"
+    assert parsed["checks_executed"] == 1
+    assert parsed["checks_skipped"] == 1
+    assert parsed["skipped_check_ids"] == ["1.1"]
+
+
 def test_render_terminal_contains_key_info():
     report = _make_report()
     output = render_terminal(report)

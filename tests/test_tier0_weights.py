@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -10,6 +12,7 @@ from safetensors.numpy import save_file
 
 from mlx_triage.models import CheckStatus
 from mlx_triage.tier0.weight_integrity import check_weight_integrity
+from tests.conftest import create_safetensors
 
 
 class TestWeightIntegrityPass:
@@ -118,3 +121,74 @@ class TestWeightIntegrityInf:
         assert result.status == CheckStatus.CRITICAL
         assert "NaN" in result.detail
         assert "Inf" in result.detail
+
+
+class TestWeightIntegrityBF16WithMLX:
+    """BF16-only models should use MLX-based inspection when available."""
+
+    def test_bf16_with_mlx_returns_pass(self, tmp_path: Path) -> None:
+        model_dir = tmp_path / "bf16-mlx-pass"
+        model_dir.mkdir()
+        create_safetensors(model_dir / "model.safetensors", dtype="BF16")
+
+        fake_mx_core = type(
+            "FakeMXCore",
+            (),
+            {
+                "load": staticmethod(
+                    lambda _path: {"model.layers.0.weight": np.ones((4, 4), dtype=np.float32)}
+                )
+            },
+        )
+
+        with patch.dict(
+            sys.modules,
+            {"mlx": type("FakeMLX", (), {"core": fake_mx_core}), "mlx.core": fake_mx_core},
+        ):
+            result = check_weight_integrity(str(model_dir))
+
+        assert result.status == CheckStatus.PASS
+        assert result.metadata.get("inspection_backend") == "mlx"
+        assert result.metadata.get("dtype") == "BF16"
+        assert result.metadata["tensor_count"] == 1
+
+    def test_bf16_with_mlx_detects_nan(self, tmp_path: Path) -> None:
+        model_dir = tmp_path / "bf16-mlx-nan"
+        model_dir.mkdir()
+        create_safetensors(model_dir / "model.safetensors", dtype="BF16")
+
+        fake_mx_core = type(
+            "FakeMXCore",
+            (),
+            {
+                "load": staticmethod(
+                    lambda _path: {
+                        "model.layers.0.weight": np.array(
+                            [[1.0, float("nan")], [2.0, 3.0]], dtype=np.float32
+                        )
+                    }
+                )
+            },
+        )
+
+        with patch.dict(
+            sys.modules,
+            {"mlx": type("FakeMLX", (), {"core": fake_mx_core}), "mlx.core": fake_mx_core},
+        ):
+            result = check_weight_integrity(str(model_dir))
+
+        assert result.status == CheckStatus.CRITICAL
+        assert "NaN" in result.detail
+        assert result.metadata.get("inspection_backend") == "mlx"
+
+    def test_bf16_without_mlx_returns_info(self, tmp_path: Path) -> None:
+        model_dir = tmp_path / "bf16-no-mlx"
+        model_dir.mkdir()
+        create_safetensors(model_dir / "model.safetensors", dtype="BF16")
+
+        with patch.dict(sys.modules, {"mlx": None, "mlx.core": None}):
+            result = check_weight_integrity(str(model_dir))
+
+        assert result.status == CheckStatus.INFO
+        assert result.metadata.get("inspection_backend") == "numpy"
+        assert result.metadata.get("reason") == "numpy_unsupported_dtype"

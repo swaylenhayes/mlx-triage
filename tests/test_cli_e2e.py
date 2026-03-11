@@ -76,6 +76,37 @@ def test_check_tier1_json_output(good_model):
     assert parsed[1]["tier"] == 1
 
 
+def test_check_strict_fails_when_any_check_skipped(good_model):
+    """--strict should exit non-zero when any check status is SKIP."""
+    runner = CliRunner()
+    with patch("mlx_triage.tier0.version_check._get_mlx_version", return_value="0.25.1"):
+        with patch("mlx_triage.tier1.get_backend", return_value=_make_unavailable_backend()):
+            result = runner.invoke(
+                cli,
+                ["check", str(good_model), "--tier", "1", "--format", "json", "--strict"],
+            )
+    assert result.exit_code == 1
+
+    json_output = result.output.split("\nStrict mode failed:", 1)[0]
+    parsed = json.loads(json_output)
+    assert isinstance(parsed, list)
+    assert parsed[1]["checks_skipped"] > 0
+
+
+def test_check_strict_passes_when_no_skips(good_model):
+    """--strict should succeed when no check status is SKIP."""
+    runner = CliRunner()
+    with patch("mlx_triage.tier0.version_check._get_mlx_version", return_value="0.25.1"):
+        result = runner.invoke(
+            cli, ["check", str(good_model), "--format", "json", "--strict"]
+        )
+    assert result.exit_code == 0
+
+    parsed = json.loads(result.output)
+    assert isinstance(parsed, dict)
+    assert parsed["checks_skipped"] == 0
+
+
 def test_check_tier1_skipped_on_tier0_critical(bf16_to_fp16_model):
     """--tier 1 should skip Tier 1 when Tier 0 has CRITICAL issues."""
     runner = CliRunner()
