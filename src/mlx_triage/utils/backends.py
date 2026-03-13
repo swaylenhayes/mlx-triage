@@ -29,6 +29,14 @@ class ModelBackend(Protocol):
         self, model: Any, tokenizer: Any, prompt: str | list[dict], **kwargs: Any
     ) -> GenerationResult: ...
 
+    def generate_batch(
+        self,
+        model: Any,
+        tokenizer: Any,
+        prompts: list[str | list[dict]],
+        **kwargs: Any,
+    ) -> list[GenerationResult]: ...
+
     def compute_perplexity(self, model: Any, tokenizer: Any, text: str) -> float: ...
 
 

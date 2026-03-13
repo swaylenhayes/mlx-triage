@@ -12,16 +12,17 @@ from safetensors.numpy import save_file
 
 from mlx_triage.models import CheckStatus
 from mlx_triage.tier0.weight_integrity import check_weight_integrity
-from tests.conftest import create_safetensors
+from tests.conftest import create_safetensors, patch_bf16_weight_integrity
 
 
 class TestWeightIntegrityPass:
     """Tests where weight integrity check should pass or be informational."""
 
     def test_good_model_returns_pass_or_info(self, good_model: Path) -> None:
-        """good_model fixture uses BF16 which numpy can't load — returns INFO."""
-        result = check_weight_integrity(str(good_model))
-        assert result.status in (CheckStatus.PASS, CheckStatus.INFO)
+        """BF16 dispatch stays testable without importing the real MLX runtime."""
+        with patch_bf16_weight_integrity():
+            result = check_weight_integrity(str(good_model))
+        assert result.status == CheckStatus.PASS
         assert result.check_id == "0.3"
         assert result.name == "Weight File Integrity"
 

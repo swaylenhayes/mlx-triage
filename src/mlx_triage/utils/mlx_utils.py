@@ -53,6 +53,30 @@ def _stream_generate(model, tokenizer, prompt: str, **kwargs) -> Generator:
     return stream_generate(model, tokenizer, prompt, **kwargs)
 
 
+def _batch_generate(model, tokenizer, prompts: list[list[int]], **kwargs):
+    """Thin wrapper around mlx_lm.batch_generate for mockability."""
+    from mlx_lm import batch_generate
+
+    return batch_generate(model, tokenizer, prompts, **kwargs)
+
+
+def _normalize_prompt(tokenizer, prompt: str | list[dict]) -> str:
+    """Convert raw or chat-style prompts into a text prompt."""
+    if isinstance(prompt, list):
+        return tokenizer.apply_chat_template(
+            prompt, tokenize=False, add_generation_prompt=True
+        )
+    return prompt
+
+
+def _encode_text(tokenizer, text: str) -> list[int]:
+    """Encode text while avoiding tokenizer-specific special-token pitfalls."""
+    try:
+        return list(tokenizer.encode(text, add_special_tokens=False))
+    except TypeError:
+        return list(tokenizer.encode(text))
+
+
 def generate_text(
     model,
     tokenizer,
@@ -74,11 +98,7 @@ def generate_text(
     Returns:
         GenerationResult with text, tokens, logprobs, and TPS.
     """
-    # Apply chat template if messages format
-    if isinstance(prompt, list):
-        prompt = tokenizer.apply_chat_template(
-            prompt, tokenize=False, add_generation_prompt=True
-        )
+    prompt = _normalize_prompt(tokenizer, prompt)
 
     # Build kwargs for stream_generate. mlx_lm >=0.30 uses a `sampler`
     # callable instead of a bare `temp` kwarg passed through to generate_step.
@@ -140,6 +160,45 @@ def generate_text(
     )
 
 
+def generate_batch(
+    model,
+    tokenizer,
+    prompts: list[str | list[dict]],
+    max_tokens: int | list[int] = 256,
+    temp: float = 0.0,
+    seed: int | None = None,
+) -> list[GenerationResult]:
+    """Generate text for a batch of prompts.
+
+    Uses mlx_lm.batch_generate and normalizes responses into GenerationResult
+    objects so higher-level checks can compare single and batched runs using
+    a shared shape.
+    """
+    normalized_prompts = [_normalize_prompt(tokenizer, prompt) for prompt in prompts]
+    encoded_prompts = [_encode_text(tokenizer, prompt) for prompt in normalized_prompts]
+
+    from mlx_lm.sample_utils import make_sampler
+
+    kwargs: dict = {"max_tokens": max_tokens, "sampler": make_sampler(temp=temp)}
+    if seed is not None:
+        import mlx.core as mx
+
+        mx.random.seed(seed)
+
+    response = _batch_generate(model, tokenizer, encoded_prompts, **kwargs)
+    generation_tps = float(getattr(response.stats, "generation_tps", 0.0))
+
+    return [
+        GenerationResult(
+            text=text,
+            tokens=_encode_text(tokenizer, text),
+            logprobs=[],
+            generation_tps=generation_tps,
+        )
+        for text in response.texts
+    ]
+
+
 class MLXLMBackend:
     """Text-only backend using mlx-lm.
 
@@ -163,6 +222,16 @@ class MLXLMBackend:
     ) -> GenerationResult:
         """Generate text via mlx-lm stream_generate."""
         return generate_text(model, tokenizer, prompt, **kwargs)
+
+    def generate_batch(
+        self,
+        model,
+        tokenizer,
+        prompts: list[str | list[dict]],
+        **kwargs,
+    ) -> list[GenerationResult]:
+        """Generate a batch of responses via mlx-lm batch_generate."""
+        return generate_batch(model, tokenizer, prompts, **kwargs)
 
     def compute_perplexity(self, model, tokenizer, text: str) -> float:
         """Compute perplexity using a raw forward pass.

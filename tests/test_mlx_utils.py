@@ -8,9 +8,10 @@ import pytest
 
 from mlx_triage.utils.mlx_utils import (
     GenerationResult,
-    load_model,
-    generate_text,
     check_mlx_available,
+    generate_batch,
+    generate_text,
+    load_model,
 )
 
 
@@ -93,3 +94,70 @@ def test_generate_text_handles_chat_messages():
 
     mock_tokenizer.apply_chat_template.assert_called_once()
     assert result.text == "Hi"
+
+
+def test_generate_batch_collects_texts_and_tokens():
+    """Verify generate_batch returns GenerationResult objects per prompt."""
+    mock_model = MagicMock()
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.encode.side_effect = lambda text, add_special_tokens=False: [
+        len(text),
+        len(text) + 1,
+    ]
+
+    fake_response = type(
+        "BatchResponse",
+        (),
+        {
+            "texts": ["one", "two"],
+            "stats": type("Stats", (), {"generation_tps": 42.0})(),
+        },
+    )()
+
+    with patch(
+        "mlx_triage.utils.mlx_utils._batch_generate", return_value=fake_response
+    ), patch.dict("sys.modules", _mock_mlx_lm_modules()):
+        results = generate_batch(mock_model, mock_tokenizer, ["prompt a", "prompt b"])
+
+    assert len(results) == 2
+    assert [result.text for result in results] == ["one", "two"]
+    assert all(isinstance(result, GenerationResult) for result in results)
+    assert results[0].tokens == [3, 4]
+    assert results[0].generation_tps == 42.0
+
+
+def test_generate_batch_handles_chat_messages():
+    """Verify chat-format prompts are normalized before batched generation."""
+    mock_model = MagicMock()
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.apply_chat_template.side_effect = [
+        "formatted prompt 1",
+        "formatted prompt 2",
+    ]
+    mock_tokenizer.encode.side_effect = lambda text, add_special_tokens=False: [
+        len(text)
+    ]
+
+    fake_response = type(
+        "BatchResponse",
+        (),
+        {
+            "texts": ["reply 1", "reply 2"],
+            "stats": type("Stats", (), {"generation_tps": 21.0})(),
+        },
+    )()
+
+    with patch(
+        "mlx_triage.utils.mlx_utils._batch_generate", return_value=fake_response
+    ), patch.dict("sys.modules", _mock_mlx_lm_modules()):
+        results = generate_batch(
+            mock_model,
+            mock_tokenizer,
+            [
+                [{"role": "user", "content": "hello"}],
+                [{"role": "user", "content": "world"}],
+            ],
+        )
+
+    assert [result.text for result in results] == ["reply 1", "reply 2"]
+    assert mock_tokenizer.apply_chat_template.call_count == 2

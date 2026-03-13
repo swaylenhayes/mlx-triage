@@ -53,21 +53,31 @@ def check(model_path: str, tier: int, output: str | None, fmt: str, strict: bool
     tier0_report = run_tier0(model_path)
     reports.append(tier0_report)
 
-    # Run Tier 1 if requested
-    if tier >= 1:
-        if tier0_report.worst_status in (
-            CheckStatus.CRITICAL,
-            CheckStatus.FAIL,
-        ):
-            click.echo(
-                "Tier 0 found critical issues. Fix those before running Tier 1.",
-                err=True,
-            )
-        else:
+    higher_tiers_requested = tier >= 1
+    tier0_blocks_higher_tiers = tier0_report.worst_status in (
+        CheckStatus.CRITICAL,
+        CheckStatus.FAIL,
+    )
+
+    if higher_tiers_requested and tier0_blocks_higher_tiers:
+        click.echo(
+            "Tier 0 found critical issues. Fix those before running higher tiers.",
+            err=True,
+        )
+    else:
+        # Run Tier 1 if requested
+        if tier >= 1:
             from mlx_triage.tier1 import run_tier1
 
             tier1_report = run_tier1(model_path)
             reports.append(tier1_report)
+
+        # Run Tier 2 if requested
+        if tier >= 2:
+            from mlx_triage.tier2 import run_tier2
+
+            tier2_report = run_tier2(model_path)
+            reports.append(tier2_report)
 
     # Output
     if output:
@@ -89,4 +99,3 @@ def check(model_path: str, tier: int, output: str | None, fmt: str, strict: bool
             err=True,
         )
         raise click.exceptions.Exit(1)
-

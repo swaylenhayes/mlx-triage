@@ -2,9 +2,46 @@
 
 import json
 import struct
+from contextlib import contextmanager
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
+
+from mlx_triage.models import CheckStatus, DiagnosticResult
+
+
+def _mock_bf16_weight_result(
+    status: CheckStatus = CheckStatus.PASS,
+    detail: str = "Mock BF16 inspection result.",
+) -> DiagnosticResult:
+    """Build a deterministic BF16 inspection result for hermetic tests."""
+    return DiagnosticResult(
+        check_id="0.3",
+        name="Weight File Integrity",
+        status=status,
+        detail=detail,
+        metadata={
+            "shard_count": 1,
+            "shards_sampled": 1,
+            "tensor_count": 1,
+            "dtype": "BF16",
+            "inspection_backend": "mlx",
+        },
+    )
+
+
+@contextmanager
+def patch_bf16_weight_integrity(
+    status: CheckStatus = CheckStatus.PASS,
+    detail: str = "Mock BF16 inspection result.",
+):
+    """Patch BF16 MLX inspection to avoid importing real MLX in tests."""
+    with patch(
+        "mlx_triage.tier0.weight_integrity._check_bf16_with_mlx",
+        return_value=_mock_bf16_weight_result(status=status, detail=detail),
+    ):
+        yield
 
 
 def create_safetensors(path: Path, dtype: str = "BF16", num_tensors: int = 1) -> None:

@@ -24,6 +24,82 @@ STATUS_COLORS = {
 }
 
 
+def _tier2_diagnostic_assessment(report: TierReport) -> dict | None:
+    """Interpret Tier 2 outcomes as infra-like, model-like, or mixed."""
+    if report.tier != 2:
+        return None
+
+    checks_by_id = {check.check_id: check for check in report.checks}
+    required_ids = {"2.1", "2.2", "2.3"}
+    if not required_ids.issubset(checks_by_id):
+        return None
+
+    batch_check = checks_by_id["2.1"]
+    memory_check = checks_by_id["2.2"]
+    context_check = checks_by_id["2.3"]
+    checks = [batch_check, memory_check, context_check]
+
+    if any(check.status == CheckStatus.SKIP for check in checks):
+        return {
+            "classification": "preflight-only",
+            "detail": "Tier 2 is incomplete because one or more isolation checks were skipped.",
+            "signals": [],
+        }
+
+    signals: list[str] = []
+    if batch_check.status in (CheckStatus.WARNING, CheckStatus.FAIL, CheckStatus.CRITICAL):
+        signals.append("batch_sensitive")
+    if memory_check.status in (
+        CheckStatus.WARNING,
+        CheckStatus.FAIL,
+        CheckStatus.CRITICAL,
+    ):
+        signals.append("memory_pressure_sensitive")
+    if context_check.status in (
+        CheckStatus.WARNING,
+        CheckStatus.FAIL,
+        CheckStatus.CRITICAL,
+    ):
+        signals.append("long_context_degradation")
+
+    if not signals:
+        return {
+            "classification": "no-runtime-instability-detected",
+            "detail": "Tier 2 did not surface runtime-instability signals across batching, memory pressure, or long-context stress.",
+            "signals": [],
+        }
+
+    if any(check.status == CheckStatus.CRITICAL for check in checks):
+        return {
+            "classification": "infrastructure-likely",
+            "detail": "Hard failures under Tier 2 stress suggest a runtime or infrastructure problem rather than a pure model-quality issue.",
+            "signals": signals,
+        }
+
+    infra_signals = [signal for signal in signals if signal != "long_context_degradation"]
+    context_only = signals == ["long_context_degradation"]
+
+    if context_only:
+        return {
+            "classification": "model-likely",
+            "detail": "Generation stayed operational, but quality degraded only under longer contexts, which points more strongly to model/context limitations than runtime failure.",
+            "signals": signals,
+        }
+
+    if infra_signals and "long_context_degradation" in signals:
+        return {
+            "classification": "mixed-signals",
+            "detail": "Tier 2 shows both runtime-sensitive behavior and long-context degradation, so the failure mode is mixed rather than cleanly attributable to one layer.",
+            "signals": signals,
+        }
+
+    return {
+        "classification": "infrastructure-likely",
+        "detail": "Tier 2 shows batch- or memory-sensitive behavior, which is more consistent with inference/runtime instability than intrinsic model limits.",
+        "signals": signals,
+    }
+
+
 def render_json(report: TierReport) -> str:
     """Render a TierReport as a JSON string."""
     checks_dict = {}
@@ -52,6 +128,9 @@ def render_json(report: TierReport) -> str:
     }
     if report.tier == 0:
         output["traits"] = collect_traits(report.checks)
+    assessment = _tier2_diagnostic_assessment(report)
+    if assessment is not None:
+        output["diagnostic_assessment"] = assessment
     return json.dumps(output, indent=2)
 
 
@@ -87,6 +166,17 @@ def render_terminal(report: TierReport) -> str:
         table.add_row(f"{check.check_id} {check.name}", status_text, detail)
 
     console.print(table)
+
+    assessment = _tier2_diagnostic_assessment(report)
+    if assessment is not None:
+        console.print()
+        console.print(
+            Panel(
+                f"[bold]{assessment['classification']}[/bold]\n{assessment['detail']}",
+                title="Tier 2 Assessment",
+                border_style="magenta",
+            )
+        )
 
     # Verdict
     worst = report.worst_status

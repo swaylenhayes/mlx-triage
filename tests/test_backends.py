@@ -76,6 +76,15 @@ class TestMLXLMBackend:
         ):
             assert backend.is_available() is False
 
+    def test_generate_batch_delegates(self):
+        backend = MLXLMBackend()
+        with patch(
+            "mlx_triage.utils.mlx_utils.generate_batch", return_value=["mocked"]
+        ) as mocked:
+            result = backend.generate_batch("model", "tokenizer", ["prompt"])
+        mocked.assert_called_once_with("model", "tokenizer", ["prompt"])
+        assert result == ["mocked"]
+
 
 class TestBackendUnavailable:
     def test_is_exception(self):

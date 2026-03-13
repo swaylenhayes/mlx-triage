@@ -168,3 +168,103 @@ def test_render_json_tier1_no_traits():
     output = render_json(report)
     parsed = json.loads(output)
     assert "traits" not in parsed
+
+
+def test_render_json_tier2_assessment_infrastructure_likely():
+    report = TierReport(
+        tier=2,
+        model="/path/to/model",
+        timestamp="2026-03-13T20:00:00Z",
+        checks=[
+            DiagnosticResult(
+                check_id="2.1",
+                name="Batch Invariance",
+                status=CheckStatus.FAIL,
+                detail="Significant batch invariance failure detected.",
+            ),
+            DiagnosticResult(
+                check_id="2.2",
+                name="Memory Pressure Sweep",
+                status=CheckStatus.PASS,
+                detail="Stable.",
+            ),
+            DiagnosticResult(
+                check_id="2.3",
+                name="Context Length Stress",
+                status=CheckStatus.PASS,
+                detail="Stable.",
+            ),
+        ],
+    )
+
+    output = render_json(report)
+    parsed = json.loads(output)
+
+    assert parsed["diagnostic_assessment"]["classification"] == "infrastructure-likely"
+    assert parsed["diagnostic_assessment"]["signals"] == ["batch_sensitive"]
+
+
+def test_render_json_tier2_assessment_model_likely():
+    report = TierReport(
+        tier=2,
+        model="/path/to/model",
+        timestamp="2026-03-13T20:00:00Z",
+        checks=[
+            DiagnosticResult(
+                check_id="2.1",
+                name="Batch Invariance",
+                status=CheckStatus.PASS,
+                detail="Stable.",
+            ),
+            DiagnosticResult(
+                check_id="2.2",
+                name="Memory Pressure Sweep",
+                status=CheckStatus.PASS,
+                detail="Stable.",
+            ),
+            DiagnosticResult(
+                check_id="2.3",
+                name="Context Length Stress",
+                status=CheckStatus.FAIL,
+                detail="Retrieval accuracy dropped sharply at longer contexts.",
+            ),
+        ],
+    )
+
+    output = render_json(report)
+    parsed = json.loads(output)
+
+    assert parsed["diagnostic_assessment"]["classification"] == "model-likely"
+    assert parsed["diagnostic_assessment"]["signals"] == ["long_context_degradation"]
+
+
+def test_render_terminal_tier2_assessment_visible():
+    report = TierReport(
+        tier=2,
+        model="/path/to/model",
+        timestamp="2026-03-13T20:00:00Z",
+        checks=[
+            DiagnosticResult(
+                check_id="2.1",
+                name="Batch Invariance",
+                status=CheckStatus.WARNING,
+                detail="Moderate divergence.",
+            ),
+            DiagnosticResult(
+                check_id="2.2",
+                name="Memory Pressure Sweep",
+                status=CheckStatus.PASS,
+                detail="Stable.",
+            ),
+            DiagnosticResult(
+                check_id="2.3",
+                name="Context Length Stress",
+                status=CheckStatus.PASS,
+                detail="Stable.",
+            ),
+        ],
+    )
+
+    output = render_terminal(report)
+    assert "Tier 2 Assessment" in output
+    assert "infrastructure-likely" in output
